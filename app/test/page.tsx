@@ -72,7 +72,7 @@ export default function TestPage() {
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold">System Status</h1>
+      <h1 className="text-3xl font-bold dark:text-white">System Status</h1>
       
       <Card>
         <CardHeader>
@@ -81,7 +81,7 @@ export default function TestPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <span>Firebase Client</span>
+            <span className="dark:text-white">Firebase Client</span>
             <span className={`flex items-center space-x-2 ${getStatusColor(status.firebase)}`}>
               <span>{getStatusIcon(status.firebase)}</span>
               <span className="capitalize">{status.firebase}</span>
@@ -89,7 +89,7 @@ export default function TestPage() {
           </div>
           
           <div className="flex items-center justify-between">
-            <span>R2 Client</span>
+            <span className="dark:text-white">R2 Client</span>
             <span className={`flex items-center space-x-2 ${getStatusColor(status.r2)}`}>
               <span>{getStatusIcon(status.r2)}</span>
               <span className="capitalize">{status.r2}</span>
@@ -97,7 +97,7 @@ export default function TestPage() {
           </div>
           
           <div className="flex items-center justify-between">
-            <span>API Routes</span>
+            <span className="dark:text-white">API Routes</span>
             <span className={`flex items-center space-x-2 ${getStatusColor(status.api)}`}>
               <span>{getStatusIcon(status.api)}</span>
               <span className="capitalize">{status.api}</span>
@@ -114,19 +114,19 @@ export default function TestPage() {
         <CardContent>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span>Firebase API Key:</span>
+              <span className="dark:text-white">Firebase API Key:</span>
               <span className={process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? 'text-green-600' : 'text-red-600'}>
                 {process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? '✅ Set' : '❌ Missing'}
               </span>
             </div>
             <div className="flex justify-between">
-              <span>R2 Access Key:</span>
+              <span className="dark:text-white">R2 Access Key:</span>
               <span className={process.env.R2_ACCESS_KEY_ID ? 'text-green-600' : 'text-red-600'}>
                 {process.env.R2_ACCESS_KEY_ID ? '✅ Set' : '❌ Missing'}
               </span>
             </div>
             <div className="flex justify-between">
-              <span>Super Admin Domains:</span>
+              <span className="dark:text-white">Super Admin Domains:</span>
               <span className={process.env.SUPERADMIN_ALLOWED_DOMAINS ? 'text-green-600' : 'text-red-600'}>
                 {process.env.SUPERADMIN_ALLOWED_DOMAINS ? '✅ Set' : '❌ Missing'}
               </span>

@@ -130,8 +130,8 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Manage your CDNs and files</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage your CDNs and files</p>
         </div>
         {user?.role === 'SUPER_ADMIN' && (
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -209,9 +209,9 @@ export default function DashboardPage() {
       {cdns.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <Cloud className="h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No CDNs found</h3>
-            <p className="text-gray-500 text-center mb-4">
+            <Cloud className="h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No CDNs found</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-center mb-4">
               {user?.role === 'SUPER_ADMIN' 
                 ? 'Get started by creating your first CDN.'
                 : 'You don\'t have access to any CDNs yet.'
@@ -228,20 +228,20 @@ export default function DashboardPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {cdns.map((cdn) => (
-            <Card key={cdn.id} className="hover:shadow-md transition-shadow">
+            <Card key={cdn.id} className="hover:shadow-md dark:hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{cdn.name}</CardTitle>
+                  <CardTitle className="text-lg dark:text-white">{cdn.name}</CardTitle>
                   <Link href={`/cdn/${cdn.id}`}>
                     <Button variant="ghost" size="sm">
                       <ExternalLink className="h-4 w-4" />
                     </Button>
                   </Link>
                 </div>
-                <CardDescription>{cdn.bucket}</CardDescription>
+                <CardDescription className="dark:text-gray-400">{cdn.bucket}</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2 text-sm text-gray-600">
+                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <div className="flex items-center space-x-2">
                     <Cloud className="h-4 w-4" />
                     <span className="truncate">{cdn.publicBase}</span>

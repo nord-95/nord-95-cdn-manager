@@ -317,11 +317,11 @@ export default function CDNPage() {
             </CardHeader>
             <CardContent>
               {/* Upload Area */}
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <Upload className="mx-auto h-12 w-12 text-gray-400" />
+              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
+                <Upload className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
                 <div className="mt-4">
                   <label htmlFor="file-upload" className="cursor-pointer">
-                    <span className="mt-2 block text-sm font-medium text-gray-900">
+                    <span className="mt-2 block text-sm font-medium text-gray-900 dark:text-white">
                       Drop files here or click to upload
                     </span>
                     <input
@@ -338,34 +338,34 @@ export default function CDNPage() {
                 </div>
                 {isUploading && (
                   <div className="mt-4">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div 
                         className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                         style={{ width: `${uploadProgress}%` }}
                       ></div>
                     </div>
-                    <p className="mt-2 text-sm text-gray-600">Uploading...</p>
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Uploading...</p>
                   </div>
                 )}
               </div>
 
               {/* File List */}
               <div className="mt-6">
-                <h3 className="text-lg font-medium mb-4">Files ({files.length})</h3>
+                <h3 className="text-lg font-medium mb-4 dark:text-white">Files ({files.length})</h3>
                 {files.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">No files uploaded yet</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">No files uploaded yet</p>
                 ) : (
                   <div className="space-y-2">
                     {files.map((file) => (
                       <div
                         key={file.key}
-                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700"
                       >
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                             {file.key}
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
                             {formatFileSize(file.size)} • {new Date(file.lastModified).toLocaleDateString()}
                           </p>
                         </div>
