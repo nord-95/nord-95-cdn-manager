@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Download, ExternalLink, X, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { authenticatedFetch } from '@/lib/api';
 
 interface FilePreviewModalProps {
   isOpen: boolean;
@@ -68,7 +69,7 @@ export function FilePreviewModal({ isOpen, onClose, file, cdnId }: FilePreviewMo
 
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/cdns/${cdnId}/files/sign-get`, {
+      const response = await authenticatedFetch(`/api/cdns/${cdnId}/files/sign-get`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -78,15 +79,17 @@ export function FilePreviewModal({ isOpen, onClose, file, cdnId }: FilePreviewMo
 
       if (response.ok) {
         const data = await response.json();
-        setPreviewUrl(data.url);
+        setPreviewUrl(data.signedUrl);
       } else {
-        throw new Error('Failed to generate preview URL');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to generate preview URL');
       }
     } catch (error) {
       console.error('Error generating preview URL:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate preview URL';
       toast({
         title: "Error",
-        description: "Failed to generate preview URL",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
