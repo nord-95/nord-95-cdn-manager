@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
+import { PWAStatus } from '@/components/PWAStatus';
 import { 
   User, 
   Mail, 
@@ -367,6 +368,9 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* PWA Status */}
+        <PWAStatus />
 
         {/* API Key Management */}
         <Card className="md:col-span-2">
