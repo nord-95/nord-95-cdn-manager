@@ -23,6 +23,8 @@ export function DeleteConfirmationDialog({
   isDeleting = false
 }: DeleteConfirmationDialogProps) {
   const [confirmationText, setConfirmationText] = useState('');
+  
+  console.log('DeleteConfirmationDialog rendered with:', { isOpen, fileName });
 
   const handleConfirm = () => {
     if (confirmationText === 'DELETE') {

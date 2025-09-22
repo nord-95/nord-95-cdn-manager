@@ -368,8 +368,10 @@ export default function CDNPage() {
   };
 
   const handleFileDelete = (file: FileObject) => {
+    console.log('Delete button clicked for file:', file.key);
     setDeleteFile(file);
     setIsDeleteDialogOpen(true);
+    console.log('Dialog should be open now');
   };
 
   const confirmFileDelete = async () => {
