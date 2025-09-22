@@ -1,0 +1,74 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { adminDb } from '@/lib/firebase/admin';
+import { getUserFromHeader, requireCdnAccess } from '@/lib/auth';
+
+const logActionSchema = z.object({
+  action: z.string().min(1),
+  details: z.record(z.any()).optional(),
+});
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const user = await requireCdnAccess(request, id);
+
+    // Get audit logs for this CDN
+    const auditQuery = await adminDb
+      .collection('auditLogs')
+      .where('cdnId', '==', id)
+      .orderBy('createdAt', 'desc')
+      .limit(100)
+      .get();
+
+    const logs = auditQuery.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    return NextResponse.json({ logs });
+  } catch (error) {
+    console.error('Error in GET /api/cdns/[id]/audit:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const user = await getUserFromHeader(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Verify user has access to this CDN
+    await requireCdnAccess(request, id);
+
+    const body = await request.json();
+    const { action, details } = logActionSchema.parse(body);
+
+    // Create audit log entry
+    await adminDb.collection('auditLogs').add({
+      actorUid: user.uid,
+      actorEmail: user.email,
+      action,
+      cdnId: id,
+      details: details || {},
+      createdAt: new Date(),
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error in POST /api/cdns/[id]/audit:', error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.errors }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

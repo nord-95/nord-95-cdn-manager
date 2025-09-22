@@ -63,6 +63,19 @@ export default function CDNPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [accessUsers, setAccessUsers] = useState<any[]>([]);
+  const [isLoadingAccess, setIsLoadingAccess] = useState(false);
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [isAddingUser, setIsAddingUser] = useState(false);
+  const [settings, setSettings] = useState({
+    name: '',
+    publicBase: '',
+    bucket: '',
+    prefix: '',
+  });
+  const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [isLoadingAudit, setIsLoadingAudit] = useState(false);
 
   const fetchCDN = useCallback(async () => {
     try {
@@ -119,6 +132,166 @@ export default function CDNPage() {
     }
   }, [params.id, fetchCDN, fetchFiles]);
 
+  const fetchAccessUsers = useCallback(async () => {
+    if (!cdn) return;
+    setIsLoadingAccess(true);
+    try {
+      const response = await authenticatedFetch(`/api/cdns/${params.id}/access`);
+      if (response.ok) {
+        const data = await response.json();
+        setAccessUsers(data.users || []);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch access users",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching access users:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch access users",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingAccess(false);
+    }
+  }, [params.id, cdn, toast]);
+
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newUserEmail.trim()) return;
+    
+    setIsAddingUser(true);
+    try {
+      const response = await authenticatedFetch(`/api/cdns/${params.id}/access`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: newUserEmail.trim() }),
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "User added successfully",
+        });
+        setNewUserEmail('');
+        fetchAccessUsers();
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "Error",
+          description: errorData.error || "Failed to add user",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error adding user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add user",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingUser(false);
+    }
+  };
+
+  const handleRemoveUser = async (userId: string) => {
+    try {
+      const response = await authenticatedFetch(`/api/cdns/${params.id}/access`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: userId }),
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "User removed successfully",
+        });
+        fetchAccessUsers();
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "Error",
+          description: errorData.error || "Failed to remove user",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error removing user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove user",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsUpdatingSettings(true);
+    try {
+      const response = await authenticatedFetch(`/api/cdns/${params.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "CDN settings updated successfully",
+        });
+        fetchCDN(); // Refresh CDN data
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "Error",
+          description: errorData.error || "Failed to update settings",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error updating settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update settings",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingSettings(false);
+    }
+  };
+
+  const fetchAuditLogs = useCallback(async () => {
+    setIsLoadingAudit(true);
+    try {
+      const response = await authenticatedFetch(`/api/cdns/${params.id}/audit`);
+      if (response.ok) {
+        const data = await response.json();
+        setAuditLogs(data.logs || []);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch audit logs",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch audit logs",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingAudit(false);
+    }
+  }, [params.id, toast]);
+
   const handleFileUpload = async (file: File) => {
     setIsUploading(true);
     setUploadProgress(0);
@@ -162,6 +335,20 @@ export default function CDNPage() {
 
       // Refresh file list
       fetchFiles();
+      
+      // Log the action
+      try {
+        await authenticatedFetch(`/api/cdns/${params.id}/audit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'UPLOAD_FILE',
+            details: { key: file.name, size: file.size, type: file.type },
+          }),
+        });
+      } catch (error) {
+        console.error('Failed to log upload action:', error);
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -186,6 +373,20 @@ export default function CDNPage() {
           description: "File deleted successfully",
         });
         fetchFiles();
+        
+        // Log the action
+        try {
+          await authenticatedFetch(`/api/cdns/${params.id}/audit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'DELETE_FILE',
+              details: { key },
+            }),
+          });
+        } catch (error) {
+          console.error('Failed to log delete action:', error);
+        }
       } else {
         throw new Error('Delete failed');
       }
@@ -207,6 +408,20 @@ export default function CDNPage() {
       title: "Copied",
       description: "Public URL copied to clipboard",
     });
+    
+    // Log the action
+    try {
+      await authenticatedFetch(`/api/cdns/${params.id}/audit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'COPY_PUBLIC_URL',
+          details: { key, publicUrl },
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to log copy action:', error);
+    }
   };
 
   const getSignedUrl = async (key: string) => {
@@ -226,6 +441,20 @@ export default function CDNPage() {
           title: "Copied",
           description: "Signed URL copied to clipboard",
         });
+        
+        // Log the action
+        try {
+          await authenticatedFetch(`/api/cdns/${params.id}/audit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'GENERATE_SIGNED_URL',
+              details: { key },
+            }),
+          });
+        } catch (error) {
+          console.error('Failed to log signed URL action:', error);
+        }
       } else {
         throw new Error('Failed to get signed URL');
       }
@@ -245,6 +474,20 @@ export default function CDNPage() {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
+
+  // Load access users when access tab is accessed
+  useEffect(() => {
+    if (cdn && accessUsers.length === 0) {
+      fetchAccessUsers();
+    }
+  }, [cdn, accessUsers.length, fetchAccessUsers]);
+
+  // Load audit logs when audit tab is accessed
+  useEffect(() => {
+    if (cdn && auditLogs.length === 0) {
+      fetchAuditLogs();
+    }
+  }, [cdn, auditLogs.length, fetchAuditLogs]);
 
   if (isLoading || !cdn) {
     return (
@@ -497,8 +740,60 @@ export default function CDNPage() {
                 Manage user access to this CDN
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <p className="text-gray-500">Access management coming soon...</p>
+            <CardContent className="space-y-6">
+              {/* Add User Form */}
+              <div className="border rounded-lg p-4">
+                <h3 className="text-lg font-medium mb-4 dark:text-white">Add User</h3>
+                <form onSubmit={handleAddUser} className="flex gap-2">
+                  <Input
+                    type="email"
+                    placeholder="Enter user email"
+                    value={newUserEmail}
+                    onChange={(e) => setNewUserEmail(e.target.value)}
+                    className="flex-1"
+                    required
+                  />
+                  <Button type="submit" disabled={isAddingUser}>
+                    {isAddingUser ? 'Adding...' : 'Add User'}
+                  </Button>
+                </form>
+              </div>
+
+              {/* Users List */}
+              <div>
+                <h3 className="text-lg font-medium mb-4 dark:text-white">Current Users</h3>
+                {isLoadingAccess ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
+                  </div>
+                ) : accessUsers.length === 0 ? (
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">No users have access to this CDN</p>
+                ) : (
+                  <div className="space-y-2">
+                    {accessUsers.map((user) => (
+                      <div
+                        key={user.uid}
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700"
+                      >
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900 dark:text-white">{user.email}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Role: {user.role} • Added: {new Date(user.addedAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveUser(user.uid)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -513,7 +808,54 @@ export default function CDNPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-500">Settings management coming soon...</p>
+                <form onSubmit={handleUpdateSettings} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="settings-name">Name</Label>
+                      <Input
+                        id="settings-name"
+                        value={settings.name}
+                        onChange={(e) => setSettings({ ...settings, name: e.target.value })}
+                        placeholder="CDN name"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="settings-bucket">Bucket</Label>
+                      <Input
+                        id="settings-bucket"
+                        value={settings.bucket}
+                        onChange={(e) => setSettings({ ...settings, bucket: e.target.value })}
+                        placeholder="Bucket name"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="settings-publicBase">Public Base URL</Label>
+                      <Input
+                        id="settings-publicBase"
+                        value={settings.publicBase}
+                        onChange={(e) => setSettings({ ...settings, publicBase: e.target.value })}
+                        placeholder="https://pub-xxx.r2.dev"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="settings-prefix">Prefix (optional)</Label>
+                      <Input
+                        id="settings-prefix"
+                        value={settings.prefix}
+                        onChange={(e) => setSettings({ ...settings, prefix: e.target.value })}
+                        placeholder="images"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <Button type="submit" disabled={isUpdatingSettings}>
+                      {isUpdatingSettings ? 'Updating...' : 'Update Settings'}
+                    </Button>
+                  </div>
+                </form>
               </CardContent>
             </Card>
           </TabsContent>
@@ -528,7 +870,53 @@ export default function CDNPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-500">Audit logs coming soon...</p>
+              {isLoadingAudit ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
+                </div>
+              ) : auditLogs.length === 0 ? (
+                <p className="text-gray-500 dark:text-gray-400 text-center py-8">No audit logs found</p>
+              ) : (
+                <div className="space-y-4">
+                  {auditLogs.map((log, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start space-x-4 p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700"
+                    >
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                          <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {log.action.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {new Date(log.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {log.details && Object.keys(log.details).length > 0 && (
+                            <span>
+                              {Object.entries(log.details).map(([key, value]) => (
+                                <span key={key}>
+                                  <strong>{key}:</strong> {String(value)} 
+                                  {Object.keys(log.details).indexOf(key) < Object.keys(log.details).length - 1 ? ' • ' : ''}
+                                </span>
+                              ))}
+                            </span>
+                          )}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          User: {log.actorEmail || 'Unknown'}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
