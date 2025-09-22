@@ -4,6 +4,7 @@ import { adminAuth, adminDb } from './firebase/admin';
 export interface User {
   uid: string;
   email: string;
+  displayName?: string;
   role: 'SUPER_ADMIN' | 'USER';
   cdnIds: string[];
   createdAt: any;

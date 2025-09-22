@@ -1,0 +1,376 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/components/ui/use-toast';
+import { 
+  User, 
+  Mail, 
+  Shield, 
+  Palette, 
+  Bell, 
+  Key,
+  Save,
+  Eye,
+  EyeOff
+} from 'lucide-react';
+import { authenticatedFetch } from '@/lib/api';
+
+export default function SettingsPage() {
+  const { user, refreshUser } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [showApiKey, setShowApiKey] = useState(false);
+  
+  // Notification settings
+  const [notifications, setNotifications] = useState({
+    email: true,
+    push: false,
+    cdnUpdates: true,
+    securityAlerts: true,
+  });
+
+  // Profile settings
+  const [profile, setProfile] = useState({
+    displayName: '',
+    email: '',
+  });
+
+  useEffect(() => {
+    if (user) {
+      setProfile({
+        displayName: user.displayName || '',
+        email: user.email || '',
+      });
+    }
+  }, [user]);
+
+  useEffect(() => {
+    // Load notification settings
+    const savedNotifications = localStorage.getItem('notifications');
+    if (savedNotifications) {
+      setNotifications(JSON.parse(savedNotifications));
+    }
+  }, []);
+
+  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
+    setTheme(newTheme);
+    toast({
+      title: "Theme Updated",
+      description: `Switched to ${newTheme} theme`,
+    });
+  };
+
+  const handleNotificationChange = (key: keyof typeof notifications, value: boolean) => {
+    const newNotifications = { ...notifications, [key]: value };
+    setNotifications(newNotifications);
+    localStorage.setItem('notifications', JSON.stringify(newNotifications));
+  };
+
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await authenticatedFetch('/api/users/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          displayName: profile.displayName,
+        }),
+      });
+
+      if (response.ok) {
+        await refreshUser();
+        toast({
+          title: "Profile Updated",
+          description: "Your profile has been updated successfully",
+        });
+      } else {
+        throw new Error('Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generateApiKey = async () => {
+    try {
+      const response = await authenticatedFetch('/api/users/api-key', {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        toast({
+          title: "API Key Generated",
+          description: "New API key has been generated",
+        });
+      } else {
+        throw new Error('Failed to generate API key');
+      }
+    } catch (error) {
+      console.error('Error generating API key:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate API key",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Manage your account settings and preferences
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Profile Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Profile
+            </CardTitle>
+            <CardDescription>
+              Update your personal information
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleProfileUpdate} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="displayName">Display Name</Label>
+                <Input
+                  id="displayName"
+                  value={profile.displayName}
+                  onChange={(e) => setProfile(prev => ({ ...prev, displayName: e.target.value }))}
+                  placeholder="Your display name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  value={profile.email}
+                  disabled
+                  className="bg-gray-50 dark:bg-gray-800"
+                />
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Email cannot be changed. Contact support if needed.
+                </p>
+              </div>
+              <Button type="submit" disabled={isLoading} className="w-full">
+                <Save className="h-4 w-4 mr-2" />
+                {isLoading ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Account Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Account
+            </CardTitle>
+            <CardDescription>
+              Your account information and permissions
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Role</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {user.role === 'SUPER_ADMIN' ? 'Super Administrator' : 'User'}
+                </p>
+              </div>
+              <div className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-xs font-medium">
+                {user.role}
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">CDN Access</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {user.cdnIds.length} CDN{user.cdnIds.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Member Since</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {new Date(user.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Theme Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              Appearance
+            </CardTitle>
+            <CardDescription>
+              Customize the look and feel of the application
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <Label>Theme</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { value: 'light', label: 'Light' },
+                  { value: 'dark', label: 'Dark' },
+                  { value: 'system', label: 'System' },
+                ].map((option) => (
+                  <Button
+                    key={option.value}
+                    variant={theme === option.value ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleThemeChange(option.value as 'light' | 'dark' | 'system')}
+                    className="w-full"
+                  >
+                    {option.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Notifications */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Notifications
+            </CardTitle>
+            <CardDescription>
+              Choose what notifications you want to receive
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Email Notifications</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Receive updates via email
+                </p>
+              </div>
+              <Switch
+                checked={notifications.email}
+                onCheckedChange={(checked) => handleNotificationChange('email', checked)}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">CDN Updates</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Notifications about CDN changes
+                </p>
+              </div>
+              <Switch
+                checked={notifications.cdnUpdates}
+                onCheckedChange={(checked) => handleNotificationChange('cdnUpdates', checked)}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Security Alerts</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Important security notifications
+                </p>
+              </div>
+              <Switch
+                checked={notifications.securityAlerts}
+                onCheckedChange={(checked) => handleNotificationChange('securityAlerts', checked)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* API Key Management */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5" />
+              API Access
+            </CardTitle>
+            <CardDescription>
+              Manage your API keys for programmatic access
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <Label htmlFor="apiKey">API Key</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="apiKey"
+                    value={showApiKey ? "sk-1234567890abcdef" : "••••••••••••••••"}
+                    disabled
+                    className="font-mono"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                  >
+                    {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Keep your API key secure and never share it publicly
+                </p>
+              </div>
+              <Button onClick={generateApiKey} variant="outline">
+                Generate New Key
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
