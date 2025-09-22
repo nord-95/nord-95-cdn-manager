@@ -21,7 +21,8 @@ import {
   ExternalLink,
   MoreVertical,
   List,
-  Grid3X3
+  Grid3X3,
+  Eye
 } from 'lucide-react';
 import { 
   DropdownMenu, 
@@ -31,6 +32,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { buildPublicUrl, copyToClipboard } from '@/utils/urls';
 import { authenticatedFetch } from '@/lib/api';
+import { FilePreviewModal } from '@/components/FilePreviewModal';
 
 interface CDN {
   id: string;
@@ -76,6 +78,10 @@ export default function CDNPage() {
   const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [isLoadingAudit, setIsLoadingAudit] = useState(false);
+  
+  // Preview modal state
+  const [previewFile, setPreviewFile] = useState<FileObject | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const fetchCDN = useCallback(async () => {
     try {
@@ -468,6 +474,16 @@ export default function CDNPage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const handlePreview = (file: FileObject) => {
+    setPreviewFile(file);
+    setIsPreviewOpen(true);
+  };
+
+  const closePreview = () => {
+    setIsPreviewOpen(false);
+    setPreviewFile(null);
+  };
+
   // Load access users when access tab is accessed
   useEffect(() => {
     if (cdn && accessUsers.length === 0) {
@@ -636,7 +652,16 @@ export default function CDNPage() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => handlePreview(file)}
+                            title="Preview"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => copyPublicUrl(file.key)}
+                            title="Copy URL"
                           >
                             <Copy className="h-4 w-4" />
                           </Button>
@@ -644,6 +669,7 @@ export default function CDNPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => getSignedUrl(file.key)}
+                            title="Download"
                           >
                             <Download className="h-4 w-4" />
                           </Button>
@@ -683,6 +709,12 @@ export default function CDNPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => handlePreview(file)}
+                              >
+                                <Eye className="mr-2 h-4 w-4" />
+                                Preview
+                              </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => copyPublicUrl(file.key)}
                               >
@@ -914,6 +946,16 @@ export default function CDNPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* File Preview Modal */}
+      {previewFile && params.id && typeof params.id === 'string' && (
+        <FilePreviewModal
+          isOpen={isPreviewOpen}
+          onClose={closePreview}
+          file={previewFile}
+          cdnId={params.id}
+        />
+      )}
     </div>
   );
 }
