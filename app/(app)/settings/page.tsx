@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useFileView } from '@/contexts/FileViewContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,13 +19,16 @@ import {
   Key,
   Save,
   Eye,
-  EyeOff
+  EyeOff,
+  List,
+  Grid3X3
 } from 'lucide-react';
 import { authenticatedFetch } from '@/lib/api';
 
 export default function SettingsPage() {
   const { user, refreshUser } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { fileView, setFileView } = useFileView();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
@@ -144,17 +148,17 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
             Manage your account settings and preferences
           </p>
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
         {/* Profile Settings */}
         <Card>
           <CardHeader>
@@ -268,6 +272,41 @@ export default function SettingsPage() {
                     onClick={() => handleThemeChange(option.value as 'light' | 'dark' | 'system')}
                     className="w-full"
                   >
+                    {option.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* File View Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <List className="h-5 w-5" />
+              File View
+            </CardTitle>
+            <CardDescription>
+              Choose how files are displayed by default
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <Label>Default View</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: 'list', label: 'List', icon: List },
+                  { value: 'grid', label: 'Grid', icon: Grid3X3 },
+                ].map((option) => (
+                  <Button
+                    key={option.value}
+                    variant={fileView === option.value ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFileView(option.value as 'list' | 'grid')}
+                    className="w-full flex items-center gap-2"
+                  >
+                    <option.icon className="h-4 w-4" />
                     {option.label}
                   </Button>
                 ))}

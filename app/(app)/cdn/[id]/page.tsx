@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFileView } from '@/contexts/FileViewContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,7 +19,9 @@ import {
   Settings, 
   FileText,
   ExternalLink,
-  MoreVertical
+  MoreVertical,
+  List,
+  Grid3X3
 } from 'lucide-react';
 import { 
   DropdownMenu, 
@@ -53,6 +56,7 @@ export default function CDNPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { fileView, setFileView } = useFileView();
   const { toast } = useToast();
   const [cdn, setCdn] = useState<CDN | null>(null);
   const [files, setFiles] = useState<FileObject[]>([]);
@@ -351,10 +355,33 @@ export default function CDNPage() {
 
               {/* File List */}
               <div className="mt-6">
-                <h3 className="text-lg font-medium mb-4 dark:text-white">Files ({files.length})</h3>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                  <h3 className="text-lg font-medium dark:text-white">Files ({files.length})</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">View:</span>
+                    <div className="flex border rounded-md">
+                      <Button
+                        variant={fileView === 'list' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setFileView('list')}
+                        className="rounded-r-none"
+                      >
+                        <List className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant={fileView === 'grid' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setFileView('grid')}
+                        className="rounded-l-none"
+                      >
+                        <Grid3X3 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
                 {files.length === 0 ? (
                   <p className="text-gray-500 dark:text-gray-400 text-center py-8">No files uploaded yet</p>
-                ) : (
+                ) : fileView === 'list' ? (
                   <div className="space-y-2">
                     {files.map((file) => (
                       <div
@@ -400,6 +427,58 @@ export default function CDNPage() {
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {files.map((file) => (
+                      <div
+                        key={file.key}
+                        className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700 group"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <FileText className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => copyPublicUrl(file.key)}
+                              >
+                                <Copy className="mr-2 h-4 w-4" />
+                                Copy URL
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => getSignedUrl(file.key)}
+                              >
+                                <Download className="mr-2 h-4 w-4" />
+                                Download
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleFileDelete(file.key)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate" title={file.key}>
+                            {file.key.split('/').pop()}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {formatFileSize(file.size)}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {new Date(file.lastModified).toLocaleDateString()}
+                          </p>
                         </div>
                       </div>
                     ))}

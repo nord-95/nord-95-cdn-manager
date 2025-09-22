@@ -69,14 +69,17 @@ export default function AppLayout({
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link href="/dashboard" className="flex items-center space-x-2">
-                <Cloud className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                <span className="text-xl font-bold text-gray-900 dark:text-white">CDN Manager</span>
+                <Cloud className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400" />
+                <span className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">CDN Manager</span>
               </Link>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700 dark:text-gray-300">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <span className="hidden sm:inline text-sm text-gray-700 dark:text-gray-300">
                 {user.email} ({user.role})
+              </span>
+              <span className="sm:hidden text-xs text-gray-700 dark:text-gray-300 truncate max-w-20">
+                {user.role}
               </span>
               
               {/* Theme Toggle */}
@@ -120,10 +123,10 @@ export default function AppLayout({
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
           {/* Sidebar */}
-          <div className="w-64 bg-white dark:bg-gray-800 rounded-lg shadow-sm mr-6">
+          <div className="w-full lg:w-64 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
             <nav className="p-4 space-y-2">
               <Link
                 href="/dashboard"
@@ -143,7 +146,7 @@ export default function AppLayout({
           </div>
 
           {/* Main Content */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {children}
           </div>
         </div>
