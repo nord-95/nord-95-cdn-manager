@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useFileView } from '@/contexts/FileViewContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,7 +24,8 @@ import {
   Eye,
   EyeOff,
   List,
-  Grid3X3
+  Grid3X3,
+  Globe
 } from 'lucide-react';
 import { authenticatedFetch } from '@/lib/api';
 
@@ -31,6 +33,7 @@ export default function SettingsPage() {
   const { user, refreshUser } = useAuth();
   const { theme, setTheme } = useTheme();
   const { fileView, setFileView } = useFileView();
+  const { language, setLanguage, t } = useLanguage();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
@@ -243,6 +246,47 @@ export default function SettingsPage() {
                   {formatDate(user.createdAt)}
                 </p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Language Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5" />
+              {t('settings.language')}
+            </CardTitle>
+            <CardDescription>
+              {t('settings.selectLanguage')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant={language === 'en' ? 'default' : 'outline'}
+                  onClick={() => setLanguage('en')}
+                  className="flex items-center gap-2"
+                >
+                  <span className="text-lg">🇺🇸</span>
+                  {t('settings.english')}
+                </Button>
+                <Button
+                  variant={language === 'ro' ? 'default' : 'outline'}
+                  onClick={() => setLanguage('ro')}
+                  className="flex items-center gap-2"
+                >
+                  <span className="text-lg">🇷🇴</span>
+                  {t('settings.romanian')}
+                </Button>
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {language === 'en' 
+                  ? 'The interface will be displayed in English.'
+                  : 'Interfața va fi afișată în română.'
+                }
+              </p>
             </div>
           </CardContent>
         </Card>

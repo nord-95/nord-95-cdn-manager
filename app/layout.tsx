@@ -5,6 +5,7 @@ import { ToasterWrapper } from "@/components/ui/toaster-wrapper";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { FileViewProvider } from "@/contexts/FileViewContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { PWAProvider } from "@/components/PWAProvider";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -52,15 +53,17 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
       </head>
       <body className={inter.className}>
-        <ThemeProvider>
-          <AuthProvider>
-            <FileViewProvider>
-              <PWAProvider>
-                {children}
-              </PWAProvider>
-            </FileViewProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        <LanguageProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <FileViewProvider>
+                <PWAProvider>
+                  {children}
+                </PWAProvider>
+              </FileViewProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </LanguageProvider>
         <ToasterWrapper />
       </body>
     </html>
