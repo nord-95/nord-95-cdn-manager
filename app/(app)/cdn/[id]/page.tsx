@@ -33,6 +33,7 @@ import {
 import { buildPublicUrl, copyToClipboard } from '@/utils/urls';
 import { authenticatedFetch } from '@/lib/api';
 import { FilePreviewModal } from '@/components/FilePreviewModal';
+import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
 
 interface CDN {
   id: string;
@@ -82,6 +83,11 @@ export default function CDNPage() {
   // Preview modal state
   const [previewFile, setPreviewFile] = useState<FileObject | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  
+  // Delete confirmation state
+  const [deleteFile, setDeleteFile] = useState<FileObject | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchCDN = useCallback(async () => {
     try {
@@ -360,9 +366,17 @@ export default function CDNPage() {
     }
   };
 
-  const handleFileDelete = async (key: string) => {
+  const handleFileDelete = (file: FileObject) => {
+    setDeleteFile(file);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmFileDelete = async () => {
+    if (!deleteFile) return;
+    
+    setIsDeleting(true);
     try {
-      const response = await authenticatedFetch(`/api/cdns/${params.id}/files/${key}`, {
+      const response = await authenticatedFetch(`/api/cdns/${params.id}/files/${deleteFile.key}`, {
         method: 'DELETE',
       });
 
@@ -380,12 +394,16 @@ export default function CDNPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               action: 'DELETE_FILE',
-              details: { key },
+              details: { key: deleteFile.key },
             }),
           });
         } catch (error) {
           console.warn('Failed to log delete action:', error);
         }
+        
+        // Close dialog
+        setIsDeleteDialogOpen(false);
+        setDeleteFile(null);
       } else {
         throw new Error('Delete failed');
       }
@@ -395,7 +413,14 @@ export default function CDNPage() {
         description: "Failed to delete file",
         variant: "destructive",
       });
+    } finally {
+      setIsDeleting(false);
     }
+  };
+
+  const closeDeleteDialog = () => {
+    setIsDeleteDialogOpen(false);
+    setDeleteFile(null);
   };
 
   const copyPublicUrl = async (key: string) => {
@@ -681,7 +706,7 @@ export default function CDNPage() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                               <DropdownMenuItem
-                                onClick={() => handleFileDelete(file.key)}
+                                onClick={() => handleFileDelete(file)}
                                 className="text-red-600"
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
@@ -728,7 +753,7 @@ export default function CDNPage() {
                                 Download
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={() => handleFileDelete(file.key)}
+                                onClick={() => handleFileDelete(file)}
                                 className="text-red-600"
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
@@ -954,6 +979,17 @@ export default function CDNPage() {
           onClose={closePreview}
           file={previewFile}
           cdnId={params.id}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {deleteFile && (
+        <DeleteConfirmationDialog
+          isOpen={isDeleteDialogOpen}
+          onClose={closeDeleteDialog}
+          onConfirm={confirmFileDelete}
+          fileName={deleteFile.key}
+          isDeleting={isDeleting}
         />
       )}
     </div>
