@@ -34,6 +34,7 @@ import { buildPublicUrl, copyToClipboard } from '@/utils/urls';
 import { authenticatedFetch } from '@/lib/api';
 import { FilePreviewModal } from '@/components/FilePreviewModal';
 import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
+import { formatDateTime } from '@/utils/date';
 
 interface CDN {
   id: string;
@@ -944,7 +945,7 @@ export default function CDNPage() {
                             {log.action.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {new Date(log.createdAt).toLocaleString()}
+                            {formatDateTime(log.createdAt)}
                           </p>
                         </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">

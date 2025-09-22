@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
 import { PWAStatus } from '@/components/PWAStatus';
+import { formatDate } from '@/utils/date';
 import { 
   User, 
   Mail, 
@@ -239,7 +240,7 @@ export default function SettingsPage() {
               <div>
                 <p className="font-medium">Member Since</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {new Date(user.createdAt).toLocaleDateString()}
+                  {formatDate(user.createdAt)}
                 </p>
               </div>
             </div>

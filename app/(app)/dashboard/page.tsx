@@ -12,6 +12,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Plus, Cloud, ExternalLink, Users, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { authenticatedFetch } from '@/lib/api';
+import { formatDate } from '@/utils/date';
 
 interface CDN {
   id: string;
@@ -252,7 +253,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center space-x-2">
                     <Calendar className="h-4 w-4" />
-                    <span>{new Date(cdn.createdAt.seconds * 1000).toLocaleDateString()}</span>
+                    <span>{formatDate(cdn.createdAt)}</span>
                   </div>
                 </div>
               </CardContent>
