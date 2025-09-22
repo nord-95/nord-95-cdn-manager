@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useFileView } from '@/contexts/FileViewContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUpdate } from '@/contexts/UpdateContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -25,7 +26,8 @@ import {
   EyeOff,
   List,
   Grid3X3,
-  Globe
+  Globe,
+  RefreshCw
 } from 'lucide-react';
 import { authenticatedFetch } from '@/lib/api';
 
@@ -34,6 +36,7 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { fileView, setFileView } = useFileView();
   const { language, setLanguage, t } = useLanguage();
+  const { updateInfo, isCheckingForUpdates, checkForUpdates, refreshApp } = useUpdate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
@@ -287,6 +290,97 @@ export default function SettingsPage() {
                   : 'Interfața va fi afișată în română.'
                 }
               </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Update Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <RefreshCw className="h-5 w-5" />
+              Updates
+            </CardTitle>
+            <CardDescription>
+              Check for and install the latest version of the application
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-4">
+              {/* Current Version Info */}
+              {updateInfo && (
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Current Version:</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {updateInfo.currentVersion.substring(0, 8)}...
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Build Time:</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {new Date(updateInfo.currentBuildTime).toLocaleString()}
+                    </span>
+                  </div>
+                  {updateInfo.hasUpdate && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                        Update Available:
+                      </span>
+                      <span className="text-sm text-green-600 dark:text-green-400">
+                        Yes
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Update Actions */}
+              <div className="flex items-center space-x-4">
+                <Button
+                  onClick={checkForUpdates}
+                  disabled={isCheckingForUpdates}
+                  className="flex items-center gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isCheckingForUpdates ? 'animate-spin' : ''}`} />
+                  {isCheckingForUpdates ? 'Checking...' : 'Check for Updates'}
+                </Button>
+                
+                {updateInfo?.hasUpdate && (
+                  <Button
+                    onClick={refreshApp}
+                    variant="default"
+                    className="flex items-center gap-2"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Install Update
+                  </Button>
+                )}
+              </div>
+
+              {/* Update Status Message */}
+              {updateInfo && (
+                <div className={`text-sm p-3 rounded-lg ${
+                  updateInfo.hasUpdate 
+                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300' 
+                    : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                }`}>
+                  {updateInfo.message}
+                </div>
+              )}
+
+              {/* Help Text */}
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="mb-2">
+                  <strong>How updates work:</strong>
+                </p>
+                <ul className="list-disc list-inside space-y-1 ml-4">
+                  <li>Updates are automatically detected when you visit the app</li>
+                  <li>Click &quot;Check for Updates&quot; to manually check for new versions</li>
+                  <li>Click &quot;Install Update&quot; to refresh and get the latest version</li>
+                  <li>Your data and settings are preserved during updates</li>
+                </ul>
+              </div>
             </div>
           </CardContent>
         </Card>

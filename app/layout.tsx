@@ -6,6 +6,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { FileViewProvider } from "@/contexts/FileViewContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { UpdateProvider } from "@/contexts/UpdateContext";
 import { PWAProvider } from "@/components/PWAProvider";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -54,15 +55,17 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <LanguageProvider>
-          <ThemeProvider>
-            <AuthProvider>
-              <FileViewProvider>
-                <PWAProvider>
-                  {children}
-                </PWAProvider>
-              </FileViewProvider>
-            </AuthProvider>
-          </ThemeProvider>
+          <UpdateProvider>
+            <ThemeProvider>
+              <AuthProvider>
+                <FileViewProvider>
+                  <PWAProvider>
+                    {children}
+                  </PWAProvider>
+                </FileViewProvider>
+              </AuthProvider>
+            </ThemeProvider>
+          </UpdateProvider>
         </LanguageProvider>
         <ToasterWrapper />
       </body>

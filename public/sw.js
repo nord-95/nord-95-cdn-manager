@@ -81,8 +81,25 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
+    }).then(() => {
+      // Notify clients about the update
+      return self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({
+            type: 'SW_UPDATE_AVAILABLE',
+            message: 'A new version is available. Refresh to update!'
+          });
+        });
+      });
     })
   );
+});
+
+// Listen for messages from the main thread
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // Background sync for offline actions
