@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useMe } from '@/hooks/useMe';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Plus, Cloud, ExternalLink, Users, Calendar } from 'lucide-react';
 import Link from 'next/link';
+import { authenticatedFetch } from '@/lib/api';
 
 interface CDN {
   id: string;
@@ -26,7 +27,7 @@ interface CDN {
 }
 
 export default function DashboardPage() {
-  const { user } = useMe();
+  const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [cdns, setCdns] = useState<CDN[]>([]);
@@ -44,7 +45,7 @@ export default function DashboardPage() {
 
   const fetchCDNs = useCallback(async () => {
     try {
-      const response = await fetch('/api/cdns');
+      const response = await authenticatedFetch('/api/cdns');
       if (response.ok) {
         const data = await response.json();
         setCdns(data);
@@ -75,7 +76,7 @@ export default function DashboardPage() {
     setIsCreating(true);
 
     try {
-      const response = await fetch('/api/cdns', {
+      const response = await authenticatedFetch('/api/cdns', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

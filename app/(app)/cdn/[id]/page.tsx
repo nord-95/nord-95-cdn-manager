@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useMe } from '@/hooks/useMe';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { buildPublicUrl, copyToClipboard } from '@/utils/urls';
+import { authenticatedFetch } from '@/lib/api';
 
 interface CDN {
   id: string;
@@ -51,7 +52,7 @@ interface FileObject {
 export default function CDNPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useMe();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [cdn, setCdn] = useState<CDN | null>(null);
   const [files, setFiles] = useState<FileObject[]>([]);
@@ -61,7 +62,7 @@ export default function CDNPage() {
 
   const fetchCDN = useCallback(async () => {
     try {
-      const response = await fetch(`/api/cdns/${params.id}`);
+      const response = await authenticatedFetch(`/api/cdns/${params.id}`);
       if (response.ok) {
         const data = await response.json();
         setCdn(data);
@@ -85,7 +86,7 @@ export default function CDNPage() {
 
   const fetchFiles = useCallback(async () => {
     try {
-      const response = await fetch(`/api/cdns/${params.id}/files`);
+      const response = await authenticatedFetch(`/api/cdns/${params.id}/files`);
       if (response.ok) {
         const data = await response.json();
         setFiles(data.objects || []);
@@ -120,7 +121,7 @@ export default function CDNPage() {
 
     try {
       // Get presigned URL
-      const signResponse = await fetch(`/api/cdns/${params.id}/files/sign-put`, {
+      const signResponse = await authenticatedFetch(`/api/cdns/${params.id}/files/sign-put`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -171,7 +172,7 @@ export default function CDNPage() {
 
   const handleFileDelete = async (key: string) => {
     try {
-      const response = await fetch(`/api/cdns/${params.id}/files/${key}`, {
+      const response = await authenticatedFetch(`/api/cdns/${params.id}/files/${key}`, {
         method: 'DELETE',
       });
 
@@ -206,7 +207,7 @@ export default function CDNPage() {
 
   const getSignedUrl = async (key: string) => {
     try {
-      const response = await fetch(`/api/cdns/${params.id}/files/sign-get`, {
+      const response = await authenticatedFetch(`/api/cdns/${params.id}/files/sign-get`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

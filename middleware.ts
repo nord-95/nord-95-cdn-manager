@@ -9,21 +9,14 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/api/') ||
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/favicon.ico') ||
-    pathname === '/login'
+    pathname === '/login' ||
+    pathname === '/test'
   ) {
     return NextResponse.next();
   }
 
-  // Redirect to login if accessing protected routes without auth
-  if (pathname.startsWith('/dashboard') || pathname.startsWith('/cdn/')) {
-    // Check if user is authenticated by looking for auth token in cookies
-    const authToken = request.cookies.get('auth-token');
-    
-    if (!authToken) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-  }
-
+  // For protected routes, let the client-side auth handle the redirect
+  // The AuthProvider will redirect to login if user is not authenticated
   return NextResponse.next();
 }
 
