@@ -36,7 +36,7 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { fileView, setFileView } = useFileView();
   const { language, setLanguage, t } = useLanguage();
-  const { updateInfo, isCheckingForUpdates, checkForUpdates, refreshApp } = useUpdate();
+  const { updateInfo, isCheckingForUpdates, checkForUpdates, refreshApp, dismissUpdate } = useUpdate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
@@ -347,14 +347,23 @@ export default function SettingsPage() {
                 </Button>
                 
                 {updateInfo?.hasUpdate && (
-                  <Button
-                    onClick={refreshApp}
-                    variant="default"
-                    className="flex items-center gap-2"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    Install Update
-                  </Button>
+                  <>
+                    <Button
+                      onClick={refreshApp}
+                      variant="default"
+                      className="flex items-center gap-2"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Install Update
+                    </Button>
+                    <Button
+                      onClick={dismissUpdate}
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      Dismiss
+                    </Button>
+                  </>
                 )}
               </div>
 

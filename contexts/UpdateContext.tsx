@@ -29,10 +29,28 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
   const [isCheckingForUpdates, setIsCheckingForUpdates] = useState(false);
   const { toast } = useToast();
 
+  // Get the last seen version from localStorage
+  const getLastSeenVersion = useCallback(() => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('lastSeenVersion');
+  }, []);
+
+  // Update the last seen version in localStorage
+  const updateLastSeenVersion = useCallback((version: string) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('lastSeenVersion', version);
+  }, []);
+
   const checkForUpdates = useCallback(async () => {
     setIsCheckingForUpdates(true);
     try {
-      const response = await authenticatedFetch('/api/updates/check');
+      const lastSeenVersion = getLastSeenVersion();
+      
+      const response = await authenticatedFetch('/api/updates/check', {
+        headers: {
+          'x-last-seen-version': lastSeenVersion || ''
+        }
+      });
       const data = await response.json();
       
       setUpdateInfo(data);
@@ -43,7 +61,11 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
           description: data.message,
           action: (
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                // Update the last seen version before refreshing
+                updateLastSeenVersion(data.currentVersion);
+                window.location.reload();
+              }}
               className="px-3 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
             >
               Refresh Now
@@ -68,9 +90,14 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsCheckingForUpdates(false);
     }
-  }, [toast]);
+  }, [toast, getLastSeenVersion, updateLastSeenVersion]);
 
   const refreshApp = useCallback(() => {
+    // Update the last seen version before refreshing
+    if (updateInfo?.currentVersion) {
+      updateLastSeenVersion(updateInfo.currentVersion);
+    }
+    
     // Clear any cached data
     if ('caches' in window) {
       caches.keys().then((cacheNames) => {
@@ -82,21 +109,32 @@ export function UpdateProvider({ children }: { children: React.ReactNode }) {
     
     // Reload the page
     window.location.reload();
-  }, []);
+  }, [updateInfo, updateLastSeenVersion]);
 
   const dismissUpdate = useCallback(() => {
+    // When dismissing an update, mark the current version as seen
+    if (updateInfo?.currentVersion) {
+      updateLastSeenVersion(updateInfo.currentVersion);
+    }
     setUpdateInfo(null);
-  }, []);
+  }, [updateInfo, updateLastSeenVersion]);
 
   // Check for updates on app start (but not in development)
   useEffect(() => {
     if (process.env.NODE_ENV === 'production') {
-      // Check for updates after a short delay to let the app load
-      const timer = setTimeout(() => {
-        checkForUpdates();
-      }, 5000);
+      // Only check for updates if we haven't checked in this session
+      const hasCheckedThisSession = sessionStorage.getItem('updateCheckedThisSession');
       
-      return () => clearTimeout(timer);
+      if (!hasCheckedThisSession) {
+        // Check for updates after a short delay to let the app load
+        const timer = setTimeout(() => {
+          checkForUpdates();
+          // Mark that we've checked for updates in this session
+          sessionStorage.setItem('updateCheckedThisSession', 'true');
+        }, 5000);
+        
+        return () => clearTimeout(timer);
+      }
     }
   }, [checkForUpdates]);
 
