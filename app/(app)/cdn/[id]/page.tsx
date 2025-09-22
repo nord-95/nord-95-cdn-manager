@@ -583,58 +583,8 @@ export default function CDNPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">{cdn.name}</h1>
-          <div className="mt-2 space-y-1">
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <span className="font-medium">Public URL:</span>
-              <code className="bg-gray-100 px-2 py-1 rounded text-xs">
-                {cdn.publicBase}
-              </code>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => copyToClipboard(cdn.publicBase)}
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <span className="font-medium">Bucket:</span>
-              <code className="bg-gray-100 px-2 py-1 rounded text-xs">
-                {cdn.bucket}
-              </code>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => copyToClipboard(cdn.bucket)}
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-            {cdn.prefix && (
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <span className="font-medium">Prefix:</span>
-                <code className="bg-gray-100 px-2 py-1 rounded text-xs">
-                  {cdn.prefix}
-                </code>
-              </div>
-            )}
-          </div>
-        </div>
-        
-        {/* Actions */}
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="destructive"
-            onClick={handleDeleteCDN}
-            className="flex items-center gap-2"
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete CDN
-          </Button>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">{cdn.name}</h1>
       </div>
 
       {/* Tabs */}
@@ -962,6 +912,96 @@ export default function CDNPage() {
                     </Button>
                   </div>
                 </form>
+              </CardContent>
+            </Card>
+
+            {/* CDN Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>CDN Information</CardTitle>
+                <CardDescription>
+                  View and copy CDN details
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <Label className="text-sm font-medium">Public URL</Label>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <code className="bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded text-sm flex-1">
+                          {cdn.publicBase}
+                        </code>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyToClipboard(cdn.publicBase)}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <Label className="text-sm font-medium">Bucket</Label>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <code className="bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded text-sm flex-1">
+                          {cdn.bucket}
+                        </code>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyToClipboard(cdn.bucket)}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {cdn.prefix && (
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <Label className="text-sm font-medium">Prefix</Label>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <code className="bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded text-sm flex-1">
+                            {cdn.prefix}
+                          </code>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Danger Zone */}
+            <Card className="border-red-200 dark:border-red-800">
+              <CardHeader>
+                <CardTitle className="text-red-600 dark:text-red-400">Danger Zone</CardTitle>
+                <CardDescription>
+                  Irreversible and destructive actions
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between p-4 border border-red-200 dark:border-red-800 rounded-lg">
+                  <div>
+                    <h3 className="font-medium text-red-600 dark:text-red-400">Delete CDN</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      Remove this CDN from the CDN Manager. The Cloudflare R2 bucket and files will remain intact.
+                    </p>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDeleteCDN}
+                    className="flex items-center gap-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete CDN
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
