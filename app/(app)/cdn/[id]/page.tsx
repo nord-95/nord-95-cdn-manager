@@ -34,6 +34,7 @@ import { buildPublicUrl, copyToClipboard } from '@/utils/urls';
 import { authenticatedFetch } from '@/lib/api';
 import { FilePreviewModal } from '@/components/FilePreviewModal';
 import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
+import { FileGridPreview } from '@/components/FileGridPreview';
 import { formatDateTime } from '@/utils/date';
 
 interface CDN {
@@ -726,13 +727,20 @@ export default function CDNPage() {
                     {files.map((file) => (
                       <div
                         key={file.key}
-                        className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700 group"
+                        className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700 group relative"
                       >
-                        <div className="flex items-center justify-between mb-2">
-                          <FileText className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                        {/* File Preview */}
+                        <FileGridPreview
+                          file={file}
+                          cdnId={params.id as string}
+                          onPreview={() => handlePreview(file)}
+                        />
+                        
+                        {/* Actions Dropdown */}
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -764,17 +772,6 @@ export default function CDNPage() {
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate" title={file.key}>
-                            {file.key.split('/').pop()}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {formatFileSize(file.size)}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {new Date(file.lastModified).toLocaleDateString()}
-                          </p>
                         </div>
                       </div>
                     ))}
