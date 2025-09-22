@@ -1,4 +1,4 @@
-import Link from 'next/link';
+export const dynamic = 'force-dynamic';
 
 export default function NotFound() {
   return (
@@ -9,12 +9,12 @@ export default function NotFound() {
         <p className="text-gray-600 mb-8">
           The page you&apos;re looking for doesn&apos;t exist.
         </p>
-        <Link 
+        <a 
           href="/dashboard"
           className="inline-block bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
         >
           Go to Dashboard
-        </Link>
+        </a>
       </div>
     </div>
   );
