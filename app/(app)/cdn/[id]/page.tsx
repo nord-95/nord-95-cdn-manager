@@ -274,23 +274,16 @@ export default function CDNPage() {
         const data = await response.json();
         setAuditLogs(data.logs || []);
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to fetch audit logs",
-          variant: "destructive",
-        });
+        console.warn('Failed to fetch audit logs:', response.status);
+        setAuditLogs([]); // Set empty array instead of showing error
       }
     } catch (error) {
       console.error('Error fetching audit logs:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch audit logs",
-        variant: "destructive",
-      });
+      setAuditLogs([]); // Set empty array instead of showing error
     } finally {
       setIsLoadingAudit(false);
     }
-  }, [params.id, toast]);
+  }, [params.id]);
 
   const handleFileUpload = async (file: File) => {
     setIsUploading(true);
@@ -336,19 +329,19 @@ export default function CDNPage() {
       // Refresh file list
       fetchFiles();
       
-      // Log the action
-      try {
-        await authenticatedFetch(`/api/cdns/${params.id}/audit`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'UPLOAD_FILE',
-            details: { key: file.name, size: file.size, type: file.type },
-          }),
-        });
-      } catch (error) {
-        console.error('Failed to log upload action:', error);
-      }
+        // Log the action (optional - don't break main functionality)
+        try {
+          await authenticatedFetch(`/api/cdns/${params.id}/audit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'UPLOAD_FILE',
+              details: { key: file.name, size: file.size, type: file.type },
+            }),
+          });
+        } catch (error) {
+          console.warn('Failed to log upload action:', error);
+        }
     } catch (error) {
       toast({
         title: "Error",
@@ -374,7 +367,7 @@ export default function CDNPage() {
         });
         fetchFiles();
         
-        // Log the action
+        // Log the action (optional - don't break main functionality)
         try {
           await authenticatedFetch(`/api/cdns/${params.id}/audit`, {
             method: 'POST',
@@ -385,7 +378,7 @@ export default function CDNPage() {
             }),
           });
         } catch (error) {
-          console.error('Failed to log delete action:', error);
+          console.warn('Failed to log delete action:', error);
         }
       } else {
         throw new Error('Delete failed');
@@ -409,7 +402,7 @@ export default function CDNPage() {
       description: "Public URL copied to clipboard",
     });
     
-    // Log the action
+    // Log the action (optional - don't break main functionality)
     try {
       await authenticatedFetch(`/api/cdns/${params.id}/audit`, {
         method: 'POST',
@@ -420,7 +413,7 @@ export default function CDNPage() {
         }),
       });
     } catch (error) {
-      console.error('Failed to log copy action:', error);
+      console.warn('Failed to log copy action:', error);
     }
   };
 
@@ -442,7 +435,7 @@ export default function CDNPage() {
           description: "Signed URL copied to clipboard",
         });
         
-        // Log the action
+        // Log the action (optional - don't break main functionality)
         try {
           await authenticatedFetch(`/api/cdns/${params.id}/audit`, {
             method: 'POST',
@@ -453,7 +446,7 @@ export default function CDNPage() {
             }),
           });
         } catch (error) {
-          console.error('Failed to log signed URL action:', error);
+          console.warn('Failed to log signed URL action:', error);
         }
       } else {
         throw new Error('Failed to get signed URL');

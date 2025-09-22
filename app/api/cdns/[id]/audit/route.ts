@@ -17,22 +17,42 @@ export async function GET(
     const user = await requireCdnAccess(request, id);
 
     // Get audit logs for this CDN
-    const auditQuery = await adminDb
-      .collection('auditLogs')
-      .where('cdnId', '==', id)
-      .orderBy('createdAt', 'desc')
-      .limit(100)
-      .get();
+    // First try with orderBy, if it fails, try without
+    let auditQuery;
+    try {
+      auditQuery = await adminDb
+        .collection('auditLogs')
+        .where('cdnId', '==', id)
+        .orderBy('createdAt', 'desc')
+        .limit(100)
+        .get();
+    } catch (indexError) {
+      console.warn('Index not found, fetching without orderBy:', indexError);
+      // If the composite index doesn't exist, fetch without orderBy
+      auditQuery = await adminDb
+        .collection('auditLogs')
+        .where('cdnId', '==', id)
+        .limit(100)
+        .get();
+    }
 
     const logs = auditQuery.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
     }));
 
+    // Sort manually if we couldn't use orderBy
+    logs.sort((a, b) => {
+      const aTime = (a as any).createdAt?.seconds || 0;
+      const bTime = (b as any).createdAt?.seconds || 0;
+      return bTime - aTime; // Descending order
+    });
+
     return NextResponse.json({ logs });
   } catch (error) {
     console.error('Error in GET /api/cdns/[id]/audit:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    // Return empty logs instead of error to not break the UI
+    return NextResponse.json({ logs: [] });
   }
 }
 
