@@ -34,6 +34,7 @@ import { buildPublicUrl, copyToClipboard } from '@/utils/urls';
 import { authenticatedFetch } from '@/lib/api';
 import { FilePreviewModal } from '@/components/FilePreviewModal';
 import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
+import { DeleteCDNConfirmationDialog } from '@/components/DeleteCDNConfirmationDialog';
 import { FileGridPreview } from '@/components/FileGridPreview';
 import { formatDateTime } from '@/utils/date';
 
@@ -90,6 +91,10 @@ export default function CDNPage() {
   const [deleteFile, setDeleteFile] = useState<FileObject | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Delete CDN state
+  const [isDeleteCDNDialogOpen, setIsDeleteCDNDialogOpen] = useState(false);
+  const [isDeletingCDN, setIsDeletingCDN] = useState(false);
 
   const fetchCDN = useCallback(async () => {
     try {
@@ -427,6 +432,45 @@ export default function CDNPage() {
     setDeleteFile(null);
   };
 
+  const handleDeleteCDN = () => {
+    setIsDeleteCDNDialogOpen(true);
+  };
+
+  const confirmDeleteCDN = async () => {
+    if (!cdn) return;
+    
+    setIsDeletingCDN(true);
+    try {
+      const response = await authenticatedFetch(`/api/cdns/${params.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "CDN removed successfully",
+        });
+        
+        // Redirect to dashboard
+        router.push('/dashboard');
+      } else {
+        throw new Error('Failed to delete CDN');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to remove CDN",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeletingCDN(false);
+    }
+  };
+
+  const closeDeleteCDNDialog = () => {
+    setIsDeleteCDNDialogOpen(false);
+  };
+
   const copyPublicUrl = async (key: string) => {
     if (!cdn) return;
     
@@ -578,6 +622,18 @@ export default function CDNPage() {
               </div>
             )}
           </div>
+        </div>
+        
+        {/* Actions */}
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="destructive"
+            onClick={handleDeleteCDN}
+            className="flex items-center gap-2"
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete CDN
+          </Button>
         </div>
       </div>
 
@@ -990,6 +1046,17 @@ export default function CDNPage() {
           onConfirm={confirmFileDelete}
           fileName={deleteFile.key}
           isDeleting={isDeleting}
+        />
+      )}
+
+      {/* Delete CDN Confirmation Dialog */}
+      {cdn && (
+        <DeleteCDNConfirmationDialog
+          isOpen={isDeleteCDNDialogOpen}
+          onClose={closeDeleteCDNDialog}
+          onConfirm={confirmDeleteCDN}
+          cdnName={cdn.name}
+          isDeleting={isDeletingCDN}
         />
       )}
     </div>
