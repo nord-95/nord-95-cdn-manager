@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can read their own profile
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      // Writes are restricted to server via Admin SDK
+      allow write: if false;
+    }
+    
+    // CDN access based on role and permissions
+    match /cdns/{cdnId} {
+      allow read: if request.auth != null && (
+        // Super admin can read all
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SUPER_ADMIN'
+        ||
+        // User can read if they have access
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        (
+          request.auth.uid in resource.data.allowedUsers ||
+          request.auth.uid in resource.data.owners
+        )
+      );
+      // Writes are restricted to server via Admin SDK
+      allow write: if false;
+    }
+    
+    // Audit logs - only super admin can read
+    match /auditLogs/{logId} {
+      allow read: if request.auth != null &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SUPER_ADMIN';
+      // Writes are restricted to server via Admin SDK
+      allow write: if false;
+    }
+  }
+}
