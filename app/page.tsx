@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 
-export default function HomePage() {
-  redirect('/dashboard');
+export default function RootPage() {
+  redirect('/home');
 }
 
 export const dynamic = 'force-dynamic';
