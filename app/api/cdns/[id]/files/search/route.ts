@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb as db } from '@/lib/firebase/admin';
 import { requireCdnAccess } from '@/lib/auth';
+import { listObjects } from '@/lib/r2';
 import { z } from 'zod';
 
 const searchSchema = z.object({
@@ -24,33 +25,58 @@ export async function GET(
     const tagsParam = searchParams.get('tags');
     const tags = tagsParam ? tagsParam.split(',') : [];
 
-    // Get files from R2 (we'll need to implement this)
-    // For now, we'll return a simple response
-    // In a real implementation, you'd search through your file metadata
+    // Get CDN info
+    const cdnDoc = await db.collection('cdns').doc(cdnId).get();
+    if (!cdnDoc.exists) {
+      return NextResponse.json({ error: 'CDN not found' }, { status: 404 });
+    }
+
+    const cdnData = cdnDoc.data()!;
+    console.log('GET /api/cdns/[id]/files/search - CDN data:', cdnData.name, cdnData.bucket);
+
+    // Get all files from R2
+    const result = await listObjects(cdnData.bucket, cdnData.prefix || '');
+    const r2Files = result.Contents?.map(obj => ({
+      key: obj.Key,
+      size: obj.Size,
+      lastModified: obj.LastModified,
+      etag: obj.ETag,
+    })) || [];
+
+    console.log('GET /api/cdns/[id]/files/search - Found', r2Files.length, 'files in R2');
+
+    // Get file metadata from Firestore
+    const fileMetadataQuery = db.collection('files').where('cdnId', '==', cdnId);
+    const fileMetadataDocs = await fileMetadataQuery.get();
+    const fileMetadata = new Map();
     
-    let files: any[] = [];
-    
-    if (query || tags.length > 0) {
-      // Search through file metadata
-      let fileQuery = db.collection('files').where('cdnId', '==', cdnId);
-      
-      if (tags.length > 0) {
-        fileQuery = fileQuery.where('tags', 'array-contains-any', tags);
-      }
-      
-      const fileDocs = await fileQuery.get();
-      files = fileDocs.docs.map(doc => ({
-        key: doc.data().key,
-        tags: doc.data().tags || [],
-        ...doc.data()
-      }));
-      
-      // Filter by query if provided
-      if (query) {
-        files = files.filter(file => 
-          file.key.toLowerCase().includes(query.toLowerCase())
-        );
-      }
+    fileMetadataDocs.docs.forEach(doc => {
+      const data = doc.data();
+      fileMetadata.set(data.key, data);
+    });
+
+    console.log('GET /api/cdns/[id]/files/search - Found', fileMetadata.size, 'files with metadata');
+
+    // Combine R2 files with Firestore metadata
+    let files = r2Files.map(file => ({
+      ...file,
+      tags: fileMetadata.get(file.key)?.tags || [],
+      ...fileMetadata.get(file.key)
+    }));
+
+    // Apply search filters
+    if (query) {
+      files = files.filter(file => 
+        file.key.toLowerCase().includes(query.toLowerCase())
+      );
+      console.log('GET /api/cdns/[id]/files/search - After query filter:', files.length, 'files');
+    }
+
+    if (tags.length > 0) {
+      files = files.filter(file => 
+        file.tags && file.tags.some((tag: string) => tags.includes(tag))
+      );
+      console.log('GET /api/cdns/[id]/files/search - After tags filter:', files.length, 'files');
     }
 
     return NextResponse.json({ files });

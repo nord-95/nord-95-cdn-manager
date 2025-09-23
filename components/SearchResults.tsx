@@ -74,9 +74,11 @@ export function SearchResults() {
 
   const performSearch = async () => {
     if (!cdnId || (!searchInput.trim() && selectedTags.length === 0)) {
+      console.log('Search skipped - no CDN ID or search criteria');
       return;
     }
 
+    console.log('Performing search:', { cdnId, searchInput, selectedTags });
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
@@ -87,17 +89,26 @@ export function SearchResults() {
         params.append('tags', selectedTags.join(','));
       }
 
-      const response = await authenticatedFetch(`/api/cdns/${cdnId}/files/search?${params.toString()}`);
+      const url = `/api/cdns/${cdnId}/files/search?${params.toString()}`;
+      console.log('Search URL:', url);
+      
+      const response = await authenticatedFetch(url);
+      console.log('Search response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Search response data:', data);
         setResults(data.files || []);
       } else {
-        throw new Error('Search failed');
+        const errorData = await response.json();
+        console.error('Search API error:', errorData);
+        throw new Error(`Search failed: ${errorData.error || 'Unknown error'}`);
       }
     } catch (error) {
+      console.error('Search error:', error);
       toast({
         title: "Search Error",
-        description: "Failed to search files",
+        description: error instanceof Error ? error.message : "Failed to search files",
         variant: "destructive",
       });
     } finally {

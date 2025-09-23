@@ -28,11 +28,18 @@ export function FileTagManager({ isOpen, onClose, file, cdnId }: FileTagManagerP
   const { toast } = useToast();
 
   const loadTags = useCallback(async () => {
+    console.log('Loading tags for file:', file.key, 'in CDN:', cdnId);
     setIsLoading(true);
     try {
-      const response = await authenticatedFetch(`/api/cdns/${cdnId}/files/${encodeURIComponent(file.key)}/tags`);
+      const url = `/api/cdns/${cdnId}/files/${encodeURIComponent(file.key)}/tags`;
+      console.log('Loading tags URL:', url);
+      
+      const response = await authenticatedFetch(url);
+      console.log('Load tags response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Load tags response data:', data);
         setTags(data.tags || []);
       } else {
         const errorData = await response.json();
