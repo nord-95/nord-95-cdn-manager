@@ -42,13 +42,6 @@ export function SearchResults() {
   // Extract CDN ID from current path
   const cdnId = pathname.startsWith('/cdn/') ? pathname.split('/')[2] : null;
 
-  // Get available tags for this CDN
-  useEffect(() => {
-    if (cdnId && isSearchOpen) {
-      fetchAvailableTags();
-    }
-  }, [cdnId, isSearchOpen, fetchAvailableTags]);
-
   const fetchAvailableTags = useCallback(async () => {
     if (!cdnId) return;
     
@@ -71,6 +64,13 @@ export function SearchResults() {
       console.error('Error fetching available tags:', error);
     }
   }, [cdnId]);
+
+  // Get available tags for this CDN
+  useEffect(() => {
+    if (cdnId && isSearchOpen) {
+      fetchAvailableTags();
+    }
+  }, [cdnId, isSearchOpen, fetchAvailableTags]);
 
   const performSearch = async () => {
     if (!cdnId || (!searchInput.trim() && selectedTags.length === 0)) {
