@@ -150,7 +150,7 @@ export function FileGridPreview({ file, cdnId, onPreview }: FileGridPreviewProps
       default:
         return (
           <div className="w-full h-32 bg-gray-100 dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center space-y-2">
-            <FileText className="h-8 w-8 text-gray-400" />
+            <FileText className="h-8 w-8 text-gray-400 dark:text-gray-500" />
             <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
               {fileInfo.extension.toUpperCase() || 'FILE'}
             </p>
