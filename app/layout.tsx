@@ -71,7 +71,6 @@ export default function RootLayout({
             </SearchProvider>
           </UpdateProvider>
         </LanguageProvider>
-        <SearchBar />
         <ToasterWrapper />
       </body>
     </html>

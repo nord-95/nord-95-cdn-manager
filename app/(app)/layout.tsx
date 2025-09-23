@@ -24,6 +24,7 @@ import {
   Monitor
 } from 'lucide-react';
 import Link from 'next/link';
+import { SearchBar } from '@/components/SearchBar';
 
 export default function AppLayout({
   children,
@@ -151,6 +152,9 @@ export default function AppLayout({
           </div>
         </div>
       </div>
+      
+      {/* Search Bar */}
+      <SearchBar />
     </div>
   );
 }
