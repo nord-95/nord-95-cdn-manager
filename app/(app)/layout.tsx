@@ -23,7 +23,8 @@ import {
   Sun,
   Moon,
   Monitor,
-  ChevronRight
+  ChevronRight,
+  GitCommit
 } from 'lucide-react';
 import Link from 'next/link';
 import { SearchBar } from '@/components/SearchBar';
@@ -128,6 +129,12 @@ export default function AppLayout({
                     <Link href="/dashboard" className="flex items-center">
                       <Home className="mr-2 h-4 w-4" />
                       Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/releases" className="flex items-center">
+                      <GitCommit className="mr-2 h-4 w-4" />
+                      Releases
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>

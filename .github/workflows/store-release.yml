@@ -1,0 +1,40 @@
+name: Store Release Information
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  store-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch full history for git commands
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build application
+      run: npm run build
+      env:
+        NEXT_PUBLIC_APP_URL: ${{ secrets.VERCEL_URL || 'https://nord-95-cdn-manager.vercel.app' }}
+    
+    - name: Store release information
+      run: npm run store-release
+      env:
+        NEXT_PUBLIC_APP_URL: ${{ secrets.VERCEL_URL || 'https://nord-95-cdn-manager.vercel.app' }}
+    
+    - name: Verify release was stored
+      run: |
+        echo "Release information has been stored in Firebase"
+        echo "Check the releases page to view the stored information"
