@@ -67,13 +67,28 @@ export function FileTagManager({ isOpen, onClose, file, cdnId }: FileTagManagerP
   const saveTags = async () => {
     setIsSaving(true);
     try {
-      const response = await authenticatedFetch(`/api/cdns/${cdnId}/files/${encodeURIComponent(file.key)}/tags`, {
+      const url = `/api/cdns/${cdnId}/files/${encodeURIComponent(file.key)}/tags`;
+      const requestBody = { tags };
+      
+      console.log('FileTagManager - Saving tags:', {
+        url,
+        cdnId,
+        fileKey: file.key,
+        encodedKey: encodeURIComponent(file.key),
+        tags,
+        requestBody
+      });
+      
+      const response = await authenticatedFetch(url, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ tags }),
+        body: JSON.stringify(requestBody),
       });
+      
+      console.log('FileTagManager - Response status:', response.status);
+      console.log('FileTagManager - Response ok:', response.ok);
 
       if (response.ok) {
         toast({
@@ -87,9 +102,10 @@ export function FileTagManager({ isOpen, onClose, file, cdnId }: FileTagManagerP
         throw new Error(errorData.error || 'Failed to save tags');
       }
     } catch (error) {
+      console.error('FileTagManager - Error saving tags:', error);
       toast({
         title: "Error",
-        description: "Failed to update file tags",
+        description: error instanceof Error ? error.message : "Failed to update file tags",
         variant: "destructive",
       });
     } finally {
