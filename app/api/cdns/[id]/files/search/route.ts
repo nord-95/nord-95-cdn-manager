@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth as auth } from '@/lib/firebase/admin';
 import { adminDb as db } from '@/lib/firebase/admin';
+import { requireCdnAccess } from '@/lib/auth';
 import { z } from 'zod';
 
 const searchSchema = z.object({
@@ -13,31 +13,16 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const token = authHeader.split('Bearer ')[1];
-    const decodedToken = await auth.verifyIdToken(token);
-    const userId = decodedToken.uid;
-
     const { id: cdnId } = await params;
+    
+    // Use proper authentication that handles super admin
+    const user = await requireCdnAccess(request, cdnId);
+    console.log('GET /api/cdns/[id]/files/search - User authenticated:', user.uid, 'Role:', user.role);
+
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q') || '';
     const tagsParam = searchParams.get('tags');
     const tags = tagsParam ? tagsParam.split(',') : [];
-
-    // Verify user has access to this CDN
-    const cdnDoc = await db.collection('cdns').doc(cdnId).get();
-    if (!cdnDoc.exists) {
-      return NextResponse.json({ error: 'CDN not found' }, { status: 404 });
-    }
-
-    const cdn = cdnDoc.data()!;
-    if (!cdn.allowedUsers.includes(userId)) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
-    }
 
     // Get files from R2 (we'll need to implement this)
     // For now, we'll return a simple response
