@@ -26,6 +26,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
 
   const closeSearch = useCallback(() => {
     setIsSearchOpen(false);
+    setSearchQuery(''); // Clear search query when closing
   }, []);
 
   const toggleSearch = useCallback(() => {

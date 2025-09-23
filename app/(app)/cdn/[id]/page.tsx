@@ -64,6 +64,9 @@ export default function CDNPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  
+  // Ensure params.id is a string
+  const cdnId = typeof params.id === 'string' ? params.id : null;
   const { fileView, setFileView } = useFileView();
   const { toast } = useToast();
   const [cdn, setCdn] = useState<CDN | null>(null);
@@ -103,8 +106,10 @@ export default function CDNPage() {
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
 
   const fetchCDN = useCallback(async () => {
+    if (!cdnId) return;
+    
     try {
-      const response = await authenticatedFetch(`/api/cdns/${params.id}`);
+      const response = await authenticatedFetch(`/api/cdns/${cdnId}`);
       if (response.ok) {
         const data = await response.json();
         setCdn(data);
@@ -124,11 +129,11 @@ export default function CDNPage() {
       });
       router.push('/dashboard');
     }
-  }, [params.id, router, toast]);
+  }, [cdnId, router, toast]);
 
   const fetchFiles = useCallback(async () => {
     try {
-      const response = await authenticatedFetch(`/api/cdns/${params.id}/files`);
+      const response = await authenticatedFetch(`/api/cdns/${cdnId}/files`);
       if (response.ok) {
         const data = await response.json();
         setFiles(data.objects || []);
@@ -148,20 +153,20 @@ export default function CDNPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [params.id, toast]);
+  }, [cdnId, toast]);
 
   useEffect(() => {
-    if (params.id) {
+    if (cdnId) {
       fetchCDN();
       fetchFiles();
     }
-  }, [params.id, fetchCDN, fetchFiles]);
+  }, [cdnId, fetchCDN, fetchFiles]);
 
   const fetchAccessUsers = useCallback(async () => {
     if (!cdn) return;
     setIsLoadingAccess(true);
     try {
-      const response = await authenticatedFetch(`/api/cdns/${params.id}/access`);
+      const response = await authenticatedFetch(`/api/cdns/${cdnId}/access`);
       if (response.ok) {
         const data = await response.json();
         setAccessUsers(data.users || []);
@@ -182,7 +187,7 @@ export default function CDNPage() {
     } finally {
       setIsLoadingAccess(false);
     }
-  }, [params.id, cdn, toast]);
+  }, [cdnId, cdn, toast]);
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -190,7 +195,7 @@ export default function CDNPage() {
     
     setIsAddingUser(true);
     try {
-      const response = await authenticatedFetch(`/api/cdns/${params.id}/access`, {
+      const response = await authenticatedFetch(`/api/cdns/${cdnId}/access`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: newUserEmail.trim() }),
@@ -225,7 +230,7 @@ export default function CDNPage() {
 
   const handleRemoveUser = async (userId: string) => {
     try {
-      const response = await authenticatedFetch(`/api/cdns/${params.id}/access`, {
+      const response = await authenticatedFetch(`/api/cdns/${cdnId}/access`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid: userId }),
@@ -259,7 +264,7 @@ export default function CDNPage() {
     e.preventDefault();
     setIsUpdatingSettings(true);
     try {
-      const response = await authenticatedFetch(`/api/cdns/${params.id}`, {
+      const response = await authenticatedFetch(`/api/cdns/${cdnId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings),
@@ -294,7 +299,7 @@ export default function CDNPage() {
   const fetchAuditLogs = useCallback(async () => {
     setIsLoadingAudit(true);
     try {
-      const response = await authenticatedFetch(`/api/cdns/${params.id}/audit`);
+      const response = await authenticatedFetch(`/api/cdns/${cdnId}/audit`);
       if (response.ok) {
         const data = await response.json();
         setAuditLogs(data.logs || []);
@@ -308,7 +313,7 @@ export default function CDNPage() {
     } finally {
       setIsLoadingAudit(false);
     }
-  }, [params.id]);
+  }, [cdnId]);
 
   const handleFileUpload = async (file: File) => {
     setIsUploading(true);
@@ -316,7 +321,7 @@ export default function CDNPage() {
 
     try {
       // Get presigned URL
-      const signResponse = await authenticatedFetch(`/api/cdns/${params.id}/files/sign-put`, {
+      const signResponse = await authenticatedFetch(`/api/cdns/${cdnId}/files/sign-put`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -356,7 +361,7 @@ export default function CDNPage() {
       
         // Log the action (optional - don't break main functionality)
         try {
-          await authenticatedFetch(`/api/cdns/${params.id}/audit`, {
+          await authenticatedFetch(`/api/cdns/${cdnId}/audit`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -391,7 +396,7 @@ export default function CDNPage() {
     
     setIsDeleting(true);
     try {
-      const response = await authenticatedFetch(`/api/cdns/${params.id}/files/${deleteFile.key}`, {
+      const response = await authenticatedFetch(`/api/cdns/${cdnId}/files/${deleteFile.key}`, {
         method: 'DELETE',
       });
 
@@ -404,7 +409,7 @@ export default function CDNPage() {
         
         // Log the action (optional - don't break main functionality)
         try {
-          await authenticatedFetch(`/api/cdns/${params.id}/audit`, {
+          await authenticatedFetch(`/api/cdns/${cdnId}/audit`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -447,7 +452,7 @@ export default function CDNPage() {
     
     setIsDeletingCDN(true);
     try {
-      const response = await authenticatedFetch(`/api/cdns/${params.id}`, {
+      const response = await authenticatedFetch(`/api/cdns/${cdnId}`, {
         method: 'DELETE',
       });
 
@@ -499,7 +504,7 @@ export default function CDNPage() {
     
     // Log the action (optional - don't break main functionality)
     try {
-      await authenticatedFetch(`/api/cdns/${params.id}/audit`, {
+      await authenticatedFetch(`/api/cdns/${cdnId}/audit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -514,7 +519,7 @@ export default function CDNPage() {
 
   const getSignedUrl = async (key: string) => {
     try {
-      const response = await authenticatedFetch(`/api/cdns/${params.id}/files/sign-get`, {
+      const response = await authenticatedFetch(`/api/cdns/${cdnId}/files/sign-get`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -532,7 +537,7 @@ export default function CDNPage() {
         
         // Log the action (optional - don't break main functionality)
         try {
-          await authenticatedFetch(`/api/cdns/${params.id}/audit`, {
+          await authenticatedFetch(`/api/cdns/${cdnId}/audit`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -586,6 +591,12 @@ export default function CDNPage() {
       fetchAuditLogs();
     }
   }, [cdn, auditLogs.length, fetchAuditLogs]);
+
+  // Redirect if no valid CDN ID
+  if (!cdnId) {
+    router.push('/dashboard');
+    return null;
+  }
 
   if (isLoading || !cdn) {
     return (
@@ -760,7 +771,7 @@ export default function CDNPage() {
                         {/* File Preview */}
                         <FileGridPreview
                           file={file}
-                          cdnId={params.id as string}
+                          cdnId={cdnId as string}
                           onPreview={() => handlePreview(file)}
                         />
                         
@@ -1097,12 +1108,12 @@ export default function CDNPage() {
       </Tabs>
 
       {/* File Preview Modal */}
-      {previewFile && params.id && typeof params.id === 'string' && (
+      {previewFile && cdnId && typeof cdnId === 'string' && (
         <FilePreviewModal
           isOpen={isPreviewOpen}
           onClose={closePreview}
           file={previewFile}
-          cdnId={params.id}
+          cdnId={cdnId}
         />
       )}
 
@@ -1134,7 +1145,7 @@ export default function CDNPage() {
           isOpen={isTagDialogOpen}
           onClose={closeTagDialog}
           file={tagFile}
-          cdnId={params.id as string}
+          cdnId={cdnId as string}
         />
       )}
     </div>

@@ -49,7 +49,7 @@ export default function DashboardPage() {
       const response = await authenticatedFetch('/api/cdns');
       if (response.ok) {
         const data = await response.json();
-        setCdns(data);
+        setCdns(data.cdns || []);
       } else {
         toast({
           title: "Error",
