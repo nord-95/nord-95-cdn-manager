@@ -42,9 +42,22 @@ export async function PUT(
     }
 
     const cdn = cdnDoc.data()!;
+    console.log('PUT /api/cdns/[id]/files/[key]/tags - CDN data:', cdn);
+    console.log('PUT /api/cdns/[id]/files/[key]/tags - Allowed users:', cdn.allowedUsers);
+    console.log('PUT /api/cdns/[id]/files/[key]/tags - Current user ID:', userId);
+    console.log('PUT /api/cdns/[id]/files/[key]/tags - User has access:', cdn.allowedUsers.includes(userId));
+    
     if (!cdn.allowedUsers.includes(userId)) {
       console.log('PUT /api/cdns/[id]/files/[key]/tags - Access denied for user:', userId);
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+      return NextResponse.json({ 
+        error: 'Access denied',
+        details: {
+          userId,
+          allowedUsers: cdn.allowedUsers,
+          cdnId,
+          cdnOwner: cdn.ownerId
+        }
+      }, { status: 403 });
     }
 
     console.log('PUT /api/cdns/[id]/files/[key]/tags - User has access, proceeding with tag update');
@@ -115,8 +128,22 @@ export async function GET(
     }
 
     const cdn = cdnDoc.data()!;
+    console.log('GET /api/cdns/[id]/files/[key]/tags - CDN data:', cdn);
+    console.log('GET /api/cdns/[id]/files/[key]/tags - Allowed users:', cdn.allowedUsers);
+    console.log('GET /api/cdns/[id]/files/[key]/tags - Current user ID:', userId);
+    console.log('GET /api/cdns/[id]/files/[key]/tags - User has access:', cdn.allowedUsers.includes(userId));
+    
     if (!cdn.allowedUsers.includes(userId)) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+      console.log('GET /api/cdns/[id]/files/[key]/tags - Access denied for user:', userId);
+      return NextResponse.json({ 
+        error: 'Access denied',
+        details: {
+          userId,
+          allowedUsers: cdn.allowedUsers,
+          cdnId,
+          cdnOwner: cdn.ownerId
+        }
+      }, { status: 403 });
     }
 
     // Get file metadata

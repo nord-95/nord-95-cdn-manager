@@ -37,6 +37,7 @@ export function FileTagManager({ isOpen, onClose, file, cdnId }: FileTagManagerP
       } else {
         const errorData = await response.json();
         console.error('Error loading tags:', errorData);
+        console.error('Error loading tags details:', errorData.details);
         // Don't show error toast for loading tags, just log it
       }
     } catch (error) {
@@ -99,6 +100,7 @@ export function FileTagManager({ isOpen, onClose, file, cdnId }: FileTagManagerP
       } else {
         const errorData = await response.json();
         console.error('API Error:', errorData);
+        console.error('API Error Details:', errorData.details);
         throw new Error(errorData.error || 'Failed to save tags');
       }
     } catch (error) {
