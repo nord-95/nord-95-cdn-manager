@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, Volume2, FileText, Image, Video, Music } from 'lucide-react';
-import { getFileType, generateImageThumbnailUrl, formatFileSize } from '@/utils/filePreview';
+import { getFileType, formatFileSize } from '@/utils/filePreview';
 import { authenticatedFetch } from '@/lib/api';
 
 interface FileGridPreviewProps {
@@ -38,8 +38,9 @@ export function FileGridPreview({ file, cdnId, onPreview }: FileGridPreviewProps
 
       if (response.ok) {
         const data = await response.json();
-        const thumbnailUrl = generateImageThumbnailUrl(data.signedUrl, 200);
-        setPreviewUrl(thumbnailUrl);
+        // Use the signed URL directly - Cloudflare R2 doesn't support query parameters for resizing
+        console.log('Generated preview URL for', file.key, ':', data.signedUrl);
+        setPreviewUrl(data.signedUrl);
       }
     } catch (error) {
       console.error('Error generating preview URL:', error);
@@ -78,7 +79,11 @@ export function FileGridPreview({ file, cdnId, onPreview }: FileGridPreviewProps
                 src={previewUrl}
                 alt={fileName}
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
-                onError={() => {
+                onLoad={() => {
+                  console.log('Image loaded successfully:', fileName);
+                }}
+                onError={(e) => {
+                  console.error('Image failed to load:', fileName, previewUrl, e);
                   setPreviewUrl('');
                 }}
               />
