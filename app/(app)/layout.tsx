@@ -131,12 +131,14 @@ export default function AppLayout({
                       Dashboard
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/releases" className="flex items-center">
-                      <GitCommit className="mr-2 h-4 w-4" />
-                      Releases
-                    </Link>
-                  </DropdownMenuItem>
+                  {user?.role === 'SUPER_ADMIN' && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/releases" className="flex items-center">
+                        <GitCommit className="mr-2 h-4 w-4" />
+                        Releases
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild>
                     <Link href="/settings" className="flex items-center">
                       <Settings className="mr-2 h-4 w-4" />

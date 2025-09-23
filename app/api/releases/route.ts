@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
+import { requireSuperAdmin } from '@/lib/auth';
 import { z } from 'zod';
 
 const createReleaseSchema = z.object({
@@ -15,6 +16,9 @@ const createReleaseSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // Require super admin access
+    await requireSuperAdmin(request);
+    
     const body = await request.json();
     const releaseData = createReleaseSchema.parse(body);
 
@@ -42,6 +46,9 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    // Require super admin access
+    await requireSuperAdmin(request);
+    
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = parseInt(searchParams.get('offset') || '0');

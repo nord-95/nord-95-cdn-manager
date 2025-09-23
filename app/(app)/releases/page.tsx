@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +14,8 @@ import {
   RefreshCw,
   ExternalLink,
   CheckCircle,
-  Clock
+  Clock,
+  Shield
 } from 'lucide-react';
 import { authenticatedFetch } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
@@ -33,6 +36,8 @@ interface Release {
 }
 
 export default function ReleasesPage() {
+  const router = useRouter();
+  const { user, isLoading: authLoading } = useAuth();
   const [releases, setReleases] = useState<Release[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -40,7 +45,24 @@ export default function ReleasesPage() {
   const [hasMore, setHasMore] = useState(false);
   const { toast } = useToast();
 
+  // Check if user is super admin
+  useEffect(() => {
+    if (!authLoading && user && user.role !== 'SUPER_ADMIN') {
+      toast({
+        title: "Access Denied",
+        description: "This page is only available to super administrators.",
+        variant: "destructive",
+      });
+      router.push('/dashboard');
+    }
+  }, [user, authLoading, router, toast]);
+
   const fetchReleases = useCallback(async (refresh = false) => {
+    // Only fetch if user is super admin
+    if (!user || user.role !== 'SUPER_ADMIN') {
+      return;
+    }
+
     if (refresh) {
       setIsRefreshing(true);
     } else {
@@ -67,7 +89,7 @@ export default function ReleasesPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [toast]);
+  }, [toast, user]);
 
   useEffect(() => {
     fetchReleases();
@@ -94,6 +116,34 @@ export default function ReleasesPage() {
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Show access denied if not super admin
+  if (user && user.role !== 'SUPER_ADMIN') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="text-center py-8">
+            <Shield className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Access Denied
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300">
+              This page is only available to super administrators.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
