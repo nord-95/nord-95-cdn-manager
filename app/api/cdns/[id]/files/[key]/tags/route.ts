@@ -37,7 +37,9 @@ export async function PUT(
     }
 
     // Update file metadata with tags
-    const fileRef = db.collection('files').doc(`${cdnId}/${key}`);
+    // Use a safer document ID by encoding the key
+    const docId = `${cdnId}/${encodeURIComponent(key)}`;
+    const fileRef = db.collection('files').doc(docId);
     await fileRef.set({
       cdnId,
       key,
@@ -95,7 +97,9 @@ export async function GET(
     }
 
     // Get file metadata
-    const fileRef = db.collection('files').doc(`${cdnId}/${key}`);
+    // Use the same document ID encoding as in PUT
+    const docId = `${cdnId}/${encodeURIComponent(key)}`;
+    const fileRef = db.collection('files').doc(docId);
     const fileDoc = await fileRef.get();
     
     if (!fileDoc.exists) {

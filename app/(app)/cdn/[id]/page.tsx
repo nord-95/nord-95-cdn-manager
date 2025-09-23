@@ -792,6 +792,12 @@ export default function CDNPage() {
                                 Download
                               </DropdownMenuItem>
                               <DropdownMenuItem
+                                onClick={() => handleTagFile(file)}
+                              >
+                                <Tag className="mr-2 h-4 w-4" />
+                                Manage Tags
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
                                 onClick={() => handleFileDelete(file)}
                                 className="text-red-600"
                               >
