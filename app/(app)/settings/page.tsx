@@ -341,6 +341,7 @@ export default function SettingsPage() {
                   onClick={checkForUpdates}
                   disabled={isCheckingForUpdates}
                   className="flex items-center gap-2"
+                  data-update-check
                 >
                   <RefreshCw className={`h-4 w-4 ${isCheckingForUpdates ? 'animate-spin' : ''}`} />
                   {isCheckingForUpdates ? 'Checking...' : 'Check for Updates'}

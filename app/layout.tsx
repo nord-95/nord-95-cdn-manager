@@ -7,6 +7,8 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { FileViewProvider } from "@/contexts/FileViewContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { UpdateProvider } from "@/contexts/UpdateContext";
+import { SearchProvider } from "@/contexts/SearchContext";
+import { SearchBar } from "@/components/SearchBar";
 import { PWAProvider } from "@/components/PWAProvider";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -56,17 +58,20 @@ export default function RootLayout({
       <body className={inter.className}>
         <LanguageProvider>
           <UpdateProvider>
-            <ThemeProvider>
-              <AuthProvider>
-                <FileViewProvider>
-                  <PWAProvider>
-                    {children}
-                  </PWAProvider>
-                </FileViewProvider>
-              </AuthProvider>
-            </ThemeProvider>
+            <SearchProvider>
+              <ThemeProvider>
+                <AuthProvider>
+                  <FileViewProvider>
+                    <PWAProvider>
+                      {children}
+                    </PWAProvider>
+                  </FileViewProvider>
+                </AuthProvider>
+              </ThemeProvider>
+            </SearchProvider>
           </UpdateProvider>
         </LanguageProvider>
+        <SearchBar />
         <ToasterWrapper />
       </body>
     </html>

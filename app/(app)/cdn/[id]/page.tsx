@@ -22,7 +22,8 @@ import {
   MoreVertical,
   List,
   Grid3X3,
-  Eye
+  Eye,
+  Tag
 } from 'lucide-react';
 import { 
   DropdownMenu, 
@@ -36,6 +37,7 @@ import { FilePreviewModal } from '@/components/FilePreviewModal';
 import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
 import { DeleteCDNConfirmationDialog } from '@/components/DeleteCDNConfirmationDialog';
 import { FileGridPreview } from '@/components/FileGridPreview';
+import { FileTagManager } from '@/components/FileTagManager';
 import { formatDateTime } from '@/utils/date';
 
 interface CDN {
@@ -95,6 +97,10 @@ export default function CDNPage() {
   // Delete CDN state
   const [isDeleteCDNDialogOpen, setIsDeleteCDNDialogOpen] = useState(false);
   const [isDeletingCDN, setIsDeletingCDN] = useState(false);
+  
+  // Tag management state
+  const [tagFile, setTagFile] = useState<FileObject | null>(null);
+  const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
 
   const fetchCDN = useCallback(async () => {
     try {
@@ -471,6 +477,16 @@ export default function CDNPage() {
     setIsDeleteCDNDialogOpen(false);
   };
 
+  const handleTagFile = (file: FileObject) => {
+    setTagFile(file);
+    setIsTagDialogOpen(true);
+  };
+
+  const closeTagDialog = () => {
+    setIsTagDialogOpen(false);
+    setTagFile(null);
+  };
+
   const copyPublicUrl = async (key: string) => {
     if (!cdn) return;
     
@@ -715,6 +731,12 @@ export default function CDNPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
+                              <DropdownMenuItem
+                                onClick={() => handleTagFile(file)}
+                              >
+                                <Tag className="mr-2 h-4 w-4" />
+                                Manage Tags
+                              </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleFileDelete(file)}
                                 className="text-red-600"
@@ -1097,6 +1119,16 @@ export default function CDNPage() {
           onConfirm={confirmDeleteCDN}
           cdnName={cdn.name}
           isDeleting={isDeletingCDN}
+        />
+      )}
+
+      {/* File Tag Manager Dialog */}
+      {tagFile && (
+        <FileTagManager
+          isOpen={isTagDialogOpen}
+          onClose={closeTagDialog}
+          file={tagFile}
+          cdnId={params.id as string}
         />
       )}
     </div>
