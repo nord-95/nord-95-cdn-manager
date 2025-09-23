@@ -14,6 +14,7 @@ const createCdnSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const user = await getUserFromHeader(request);
+    console.log('GET /api/cdns - User:', user?.uid, user?.role);
     
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -23,16 +24,25 @@ export async function GET(request: NextRequest) {
     
     // If user is not super admin, filter by their access
     if (user.role !== 'SUPER_ADMIN') {
+      console.log('GET /api/cdns - Filtering by allowedUsers for user:', user.uid);
       query = query.where('allowedUsers', 'array-contains', user.uid);
+    } else {
+      console.log('GET /api/cdns - Super admin, getting all CDNs');
     }
 
     const snapshot = await query.get();
-    const cdns = snapshot.docs.map((doc: any) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    console.log('GET /api/cdns - Found', snapshot.docs.length, 'CDNs');
+    
+    const cdns = snapshot.docs.map((doc: any) => {
+      const data = doc.data();
+      console.log('GET /api/cdns - CDN:', doc.id, data.name, 'allowedUsers:', data.allowedUsers);
+      return {
+        id: doc.id,
+        ...data,
+      };
+    });
 
-    return NextResponse.json(cdns);
+    return NextResponse.json({ cdns });
   } catch (error) {
     console.error('Error in GET /api/cdns:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

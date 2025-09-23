@@ -55,12 +55,18 @@ export default function AppLayout({
   const fetchCdns = useCallback(async () => {
     if (!user) return;
     
+    console.log('Fetching CDNs for user:', user.uid, user.role);
     setIsLoadingCdns(true);
     try {
       const response = await authenticatedFetch('/api/cdns');
+      console.log('CDNs API response status:', response.status);
       if (response.ok) {
         const data = await response.json();
+        console.log('CDNs API response data:', data);
         setCdns(data.cdns || []);
+      } else {
+        const errorData = await response.json();
+        console.error('CDNs API error:', errorData);
       }
     } catch (error) {
       console.error('Error fetching CDNs:', error);
