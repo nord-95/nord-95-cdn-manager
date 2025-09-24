@@ -69,7 +69,7 @@ SUPERADMIN_ALLOWED_DOMAINS=nord95.com,raresonline.com,ryanmiller.one,iamryanmill
 2. **Wait for deployment** (usually 2-3 minutes)
 3. **Get your live URL**: `https://your-project-name.vercel.app`
 
-## Step 5: Configure Firebase for Production
+## Step 5: Configure Firebase for Production:
 
 ### Deploy Firestore Rules:
 ```bash
