@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
 import { 
   Plus, 
@@ -27,7 +28,7 @@ import {
 import Link from 'next/link';
 import { authenticatedFetch } from '@/lib/api';
 import { formatDate } from '@/utils/date';
-import { InviteDocument, InviteStatus } from '@/lib/validators/invites';
+import { InviteDocument, InviteStatus, DEFAULT_ALLOWED_MIME_TYPES, DEFAULT_ALLOWED_EXTENSIONS } from '@/lib/validators/invites';
 
 export default function InvitationsPage() {
   const { user } = useAuth();
@@ -49,6 +50,7 @@ export default function InvitationsPage() {
     maxSizeBytes: 50 * 1024 * 1024, // 50MB
     maxUses: 10 as number | null,
     expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16), // 7 days from now
+    neverExpire: false,
     uploadPrefix: 'invites/{label}/{YYYY}/{MM}/{DD}/',
     notifyEmails: [] as string[],
     notes: '',
@@ -116,7 +118,7 @@ export default function InvitationsPage() {
         },
         body: JSON.stringify({
           ...formData,
-          expiresAt: new Date(formData.expiresAt),
+          expiresAt: formData.neverExpire ? null : new Date(formData.expiresAt),
           maxUses: formData.maxUses || null,
         }),
       });
@@ -136,6 +138,7 @@ export default function InvitationsPage() {
           maxSizeBytes: 50 * 1024 * 1024,
           maxUses: 10 as number | null,
           expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
+          neverExpire: false,
           uploadPrefix: 'invites/{label}/{YYYY}/{MM}/{DD}/',
           notifyEmails: [],
           notes: '',
@@ -316,29 +319,67 @@ export default function InvitationsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="allowedMimeTypes">Allowed MIME Types</Label>
-                <Input
-                  id="allowedMimeTypes"
-                  placeholder="image/png,image/jpeg,image/webp"
-                  value={formData.allowedMimeTypes.join(',')}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    allowedMimeTypes: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-                  })}
-                />
+                <Label>Allowed MIME Types</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {DEFAULT_ALLOWED_MIME_TYPES.map((mimeType) => (
+                    <div key={mimeType} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`mime-${mimeType}`}
+                        checked={formData.allowedMimeTypes.includes(mimeType)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData({
+                              ...formData,
+                              allowedMimeTypes: [...formData.allowedMimeTypes, mimeType]
+                            });
+                          } else {
+                            setFormData({
+                              ...formData,
+                              allowedMimeTypes: formData.allowedMimeTypes.filter(m => m !== mimeType)
+                            });
+                          }
+                        }}
+                        className="rounded border-gray-300"
+                      />
+                      <Label htmlFor={`mime-${mimeType}`} className="text-sm">
+                        {mimeType}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="allowedExtensions">Allowed Extensions</Label>
-                <Input
-                  id="allowedExtensions"
-                  placeholder="png,jpg,jpeg,webp"
-                  value={formData.allowedExtensions.join(',')}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    allowedExtensions: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-                  })}
-                />
+                <Label>Allowed Extensions</Label>
+                <div className="grid grid-cols-4 gap-2">
+                  {DEFAULT_ALLOWED_EXTENSIONS.map((ext) => (
+                    <div key={ext} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`ext-${ext}`}
+                        checked={formData.allowedExtensions.includes(ext)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData({
+                              ...formData,
+                              allowedExtensions: [...formData.allowedExtensions, ext]
+                            });
+                          } else {
+                            setFormData({
+                              ...formData,
+                              allowedExtensions: formData.allowedExtensions.filter(e => e !== ext)
+                            });
+                          }
+                        }}
+                        className="rounded border-gray-300"
+                      />
+                      <Label htmlFor={`ext-${ext}`} className="text-sm">
+                        .{ext}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -370,14 +411,26 @@ export default function InvitationsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="expiresAt">Expires At</Label>
-                <Input
-                  id="expiresAt"
-                  type="datetime-local"
-                  value={formData.expiresAt}
-                  onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
-                  required
-                />
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="neverExpire"
+                    checked={formData.neverExpire}
+                    onCheckedChange={(checked) => setFormData({ ...formData, neverExpire: checked })}
+                  />
+                  <Label htmlFor="neverExpire">Never Expire</Label>
+                </div>
+                {!formData.neverExpire && (
+                  <div>
+                    <Label htmlFor="expiresAt">Expires At</Label>
+                    <Input
+                      id="expiresAt"
+                      type="datetime-local"
+                      value={formData.expiresAt}
+                      onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
+                      required
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">

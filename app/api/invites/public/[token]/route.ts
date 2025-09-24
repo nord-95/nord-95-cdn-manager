@@ -48,8 +48,8 @@ export async function GET(
     
     // Check if invite is expired
     const now = new Date();
-    const expiresAt = inviteData.expiresAt.toDate();
-    const isExpired = now > expiresAt;
+    const expiresAt = inviteData.expiresAt ? inviteData.expiresAt.toDate() : null;
+    const isExpired = expiresAt ? now > expiresAt : false;
     
     // Update status if expired
     if (isExpired && inviteData.status === InviteStatus.enum.ACTIVE) {
@@ -71,7 +71,7 @@ export async function GET(
       allowedMimeTypes: inviteData.allowedMimeTypes,
       allowedExtensions: inviteData.allowedExtensions,
       maxSizeBytes: inviteData.maxSizeBytes,
-      expiresAt: expiresAt.toISOString(),
+      expiresAt: expiresAt ? expiresAt.toISOString() : null,
       status: inviteData.status,
       remainingUses: inviteData.remainingUses,
       maxUses: inviteData.maxUses,

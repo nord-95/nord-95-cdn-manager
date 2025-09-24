@@ -56,13 +56,13 @@ export async function POST(
     
     // Validate invite status and expiration
     const now = new Date();
-    const expiresAt = inviteData.expiresAt.toDate();
+    const expiresAt = inviteData.expiresAt ? inviteData.expiresAt.toDate() : null;
     
     if (inviteData.status !== InviteStatus.enum.ACTIVE) {
       return NextResponse.json({ error: 'Invite is not active' }, { status: 400 });
     }
     
-    if (now > expiresAt) {
+    if (expiresAt && now > expiresAt) {
       return NextResponse.json({ error: 'Invite has expired' }, { status: 400 });
     }
     

@@ -38,7 +38,7 @@ export const InviteCreateSchema = z.object({
   allowedExtensions: z.array(z.string()).min(1),
   maxSizeBytes: z.number().positive().max(100 * 1024 * 1024), // Max 100MB
   maxUses: z.number().positive().nullable(),
-  expiresAt: z.date(),
+  expiresAt: z.date().nullable(), // Allow null for never expire
   uploadPrefix: z.string().min(1).max(200),
   notifyEmails: z.array(z.string().email()).optional(),
   notes: z.string().max(500).optional(),
@@ -56,7 +56,7 @@ export const InviteMetadataSchema = z.object({
   allowedMimeTypes: z.array(z.string()),
   allowedExtensions: z.array(z.string()),
   maxSizeBytes: z.number(),
-  expiresAt: z.date(),
+  expiresAt: z.date().nullable(),
   status: InviteStatus,
   remainingUses: z.number(),
   maxUses: z.number().nullable(),

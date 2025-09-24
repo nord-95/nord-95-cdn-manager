@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       maxSizeBytes: inviteData.maxSizeBytes,
       maxUses: inviteData.maxUses,
       remainingUses: inviteData.maxUses || 0,
-      expiresAt: inviteData.expiresAt,
+      expiresAt: inviteData.expiresAt || null,
       status: InviteStatus.enum.ACTIVE,
       uploadPrefix: resolvedPrefix,
       notifyEmails: inviteData.notifyEmails || [],
@@ -111,11 +111,11 @@ export async function GET(request: NextRequest) {
     
     // Parse query parameters
     const query = InviteListQuerySchema.parse({
-      status: searchParams.get('status'),
-      cdnId: searchParams.get('cdnId'),
-      q: searchParams.get('q'),
-      page: searchParams.get('page'),
-      limit: searchParams.get('limit'),
+      status: searchParams.get('status') || undefined,
+      cdnId: searchParams.get('cdnId') || undefined,
+      q: searchParams.get('q') || undefined,
+      page: searchParams.get('page') || undefined,
+      limit: searchParams.get('limit') || undefined,
     });
     
     // Build Firestore query

@@ -54,9 +54,9 @@ export default function PublicInvitePage() {
         setInvite(data);
         
         // Check if expired
-        const expiresAt = new Date(data.expiresAt);
+        const expiresAt = data.expiresAt ? new Date(data.expiresAt) : null;
         const now = new Date();
-        if (now > expiresAt) {
+        if (expiresAt && now > expiresAt) {
           setIsExpired(true);
         }
         
@@ -71,21 +71,25 @@ export default function PublicInvitePage() {
         }
         
         // Calculate time remaining
-        const timeDiff = expiresAt.getTime() - now.getTime();
-        if (timeDiff > 0) {
-          const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-          
-          if (days > 0) {
-            setTimeRemaining(`${days}d ${hours}h ${minutes}m`);
-          } else if (hours > 0) {
-            setTimeRemaining(`${hours}h ${minutes}m`);
+        if (expiresAt) {
+          const timeDiff = expiresAt.getTime() - now.getTime();
+          if (timeDiff > 0) {
+            const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            if (days > 0) {
+              setTimeRemaining(`${days}d ${hours}h ${minutes}m`);
+            } else if (hours > 0) {
+              setTimeRemaining(`${hours}h ${minutes}m`);
+            } else {
+              setTimeRemaining(`${minutes}m`);
+            }
           } else {
-            setTimeRemaining(`${minutes}m`);
+            setIsExpired(true);
           }
         } else {
-          setIsExpired(true);
+          setTimeRemaining('Never expires');
         }
       } else {
         toast({
