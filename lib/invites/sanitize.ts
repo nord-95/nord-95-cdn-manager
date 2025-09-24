@@ -83,13 +83,27 @@ export function validateFileExtension(
 }
 
 /**
- * Validate MIME type against allowed list
+ * Validate MIME type against allowed list (more permissive)
  */
 export function validateMimeType(
   contentType: string,
   allowedMimeTypes: string[]
 ): boolean {
-  return allowedMimeTypes.includes(contentType);
+  // If no restrictions, allow all
+  if (!allowedMimeTypes || allowedMimeTypes.length === 0) {
+    return true;
+  }
+  
+  // Check exact match first
+  if (allowedMimeTypes.includes(contentType)) {
+    return true;
+  }
+  
+  // Check wildcard patterns (e.g., image/*, video/*, application/*)
+  const mainType = contentType.split('/')[0];
+  const wildcardType = `${mainType}/*`;
+  
+  return allowedMimeTypes.includes(wildcardType);
 }
 
 /**

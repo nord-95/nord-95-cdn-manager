@@ -10,33 +10,28 @@ export type UploadStatus = z.infer<typeof UploadStatus>;
 
 // Default allowed MIME types and extensions
 export const DEFAULT_ALLOWED_MIME_TYPES = [
-  'image/png',
-  'image/jpeg',
-  'image/webp',
+  'image/*', // Allow all image types
+  'video/*', // Allow all video types
+  'audio/*', // Allow all audio types
   'application/pdf',
-  'video/mp4',
   'application/zip',
-  'image/svg+xml',
-  'audio/mpeg',
-  'audio/wav',
-  'audio/ogg',
-  'audio/mp3',
-  'audio/m4a'
+  'application/*', // Allow most application types
+  'text/*' // Allow text files
 ] as const;
 
 export const DEFAULT_ALLOWED_EXTENSIONS = [
-  'png',
-  'jpg',
-  'jpeg',
-  'webp',
-  'pdf',
-  'mp4',
-  'zip',
-  'svg',
-  'mp3',
-  'wav',
-  'ogg',
-  'm4a'
+  // Images
+  'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'tiff', 'ico',
+  // Videos
+  'mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv', 'm4v',
+  // Audio
+  'mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac', 'wma',
+  // Documents
+  'pdf', 'doc', 'docx', 'txt', 'rtf', 'odt',
+  // Archives
+  'zip', 'rar', '7z', 'tar', 'gz',
+  // Other
+  'json', 'xml', 'csv', 'xlsx', 'pptx'
 ] as const;
 
 // Invite creation schema
@@ -45,7 +40,7 @@ export const InviteCreateSchema = z.object({
   cdnId: z.string().min(1),
   allowedMimeTypes: z.array(z.string()).min(1),
   allowedExtensions: z.array(z.string()).min(1),
-  maxSizeBytes: z.number().positive().max(100 * 1024 * 1024), // Max 100MB
+  maxSizeBytes: z.number().positive().max(1024 * 1024 * 1024), // Max 1GB
   maxUses: z.number().positive().nullable(),
   expiresAt: z.date().nullable(), // Allow null for never expire
   uploadPrefix: z.string().min(1).max(200),

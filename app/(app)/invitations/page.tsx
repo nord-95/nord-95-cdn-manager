@@ -46,9 +46,9 @@ export default function InvitationsPage() {
   const [formData, setFormData] = useState({
     label: '',
     cdnId: '',
-    allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp'],
-    allowedExtensions: ['png', 'jpg', 'jpeg', 'webp'],
-    maxSizeBytes: 50 * 1024 * 1024, // 50MB
+    allowedMimeTypes: ['image/*', 'video/*', 'audio/*', 'application/pdf', 'application/zip', 'application/*', 'text/*'],
+    allowedExtensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'mp4', 'avi', 'mov', 'mp3', 'wav', 'ogg', 'pdf', 'zip', 'txt', 'doc', 'docx'],
+    maxSizeBytes: 500 * 1024 * 1024, // 500MB
     maxUses: 10 as number | null,
     expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16), // 7 days from now
     neverExpire: false,
