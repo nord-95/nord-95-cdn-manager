@@ -30,14 +30,16 @@ const corsConfig = [
       "https://localhost:3000",
       "http://localhost:3000",
       "https://*.nord95.com",
-      "https://*.vercel.app"
+      "https://*.vercel.app",
+      "*" // Allow all origins for testing
     ],
     "AllowedMethods": [
       "GET",
       "PUT",
       "POST",
       "DELETE",
-      "HEAD"
+      "HEAD",
+      "OPTIONS"
     ],
     "AllowedHeaders": [
       "*"

@@ -224,7 +224,25 @@ export default function InvitationsPage() {
 
   const copyInviteUrl = async (inviteId: string) => {
     try {
-      const token = inviteTokens[inviteId];
+      let token = inviteTokens[inviteId];
+      
+      // If we don't have the token, fetch it from the server
+      if (!token) {
+        const response = await authenticatedFetch(`/api/invites/${inviteId}/token`);
+        if (response.ok) {
+          const data = await response.json();
+          token = data.token;
+          
+          // Store the token for future use
+          setInviteTokens(prev => ({
+            ...prev,
+            [inviteId]: token
+          }));
+        } else {
+          throw new Error('Failed to get invite token');
+        }
+      }
+      
       if (token) {
         const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://cdn-manager.nord95.com'}/invite/${token}`;
         await navigator.clipboard.writeText(inviteUrl);
@@ -233,11 +251,7 @@ export default function InvitationsPage() {
           description: "Invite URL copied to clipboard",
         });
       } else {
-        toast({
-          title: "Error",
-          description: "Invite URL not available. Please recreate the invitation.",
-          variant: "destructive",
-        });
+        throw new Error('No token available');
       }
     } catch (error) {
       toast({

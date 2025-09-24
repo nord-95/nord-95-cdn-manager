@@ -19,6 +19,7 @@ export function r2() {
       accessKeyId: process.env.R2_ACCESS_KEY_ID!,
       secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
     },
+    forcePathStyle: true, // Use path-style URLs instead of virtual-hosted-style
   });
 }
 
