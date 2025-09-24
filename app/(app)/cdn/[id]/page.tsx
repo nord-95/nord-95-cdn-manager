@@ -31,7 +31,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { buildPublicUrl, copyToClipboard } from '@/utils/urls';
+import { buildPublicUrl, buildCdnUrl, copyToClipboard } from '@/utils/urls';
 import { authenticatedFetch } from '@/lib/api';
 import { FilePreviewModal } from '@/components/FilePreviewModal';
 import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
@@ -46,6 +46,7 @@ interface CDN {
   publicBase: string;
   bucket: string;
   prefix: string;
+  customDomain?: string;
   owners: string[];
   allowedUsers: string[];
   createdBy: string;
@@ -83,6 +84,7 @@ export default function CDNPage() {
     publicBase: '',
     bucket: '',
     prefix: '',
+    customDomain: '',
   });
   const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
@@ -161,6 +163,19 @@ export default function CDNPage() {
       fetchFiles();
     }
   }, [cdnId, fetchCDN, fetchFiles]);
+
+  // Initialize settings when CDN data is loaded
+  useEffect(() => {
+    if (cdn) {
+      setSettings({
+        name: cdn.name,
+        publicBase: cdn.publicBase,
+        bucket: cdn.bucket,
+        prefix: cdn.prefix,
+        customDomain: cdn.customDomain || '',
+      });
+    }
+  }, [cdn]);
 
   const fetchAccessUsers = useCallback(async () => {
     if (!cdn) return;
@@ -499,7 +514,7 @@ export default function CDNPage() {
     await copyToClipboard(publicUrl);
     toast({
       title: "Copied",
-      description: "Public URL copied to clipboard",
+      description: "Object URL copied to clipboard",
     });
     
     // Log the action (optional - don't break main functionality)
@@ -508,8 +523,33 @@ export default function CDNPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'COPY_PUBLIC_URL',
+          action: 'COPY_OBJECT_URL',
           details: { key, publicUrl },
+        }),
+      });
+    } catch (error) {
+      console.warn('Failed to log copy action:', error);
+    }
+  };
+
+  const copyCdnUrl = async (key: string) => {
+    if (!cdn) return;
+    
+    const cdnUrl = buildCdnUrl(cdn.customDomain, cdn.publicBase, key, cdn.prefix);
+    await copyToClipboard(cdnUrl);
+    toast({
+      title: "Copied",
+      description: "CDN URL copied to clipboard",
+    });
+    
+    // Log the action (optional - don't break main functionality)
+    try {
+      await authenticatedFetch(`/api/cdns/${cdnId}/audit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'COPY_CDN_URL',
+          details: { key, cdnUrl },
         }),
       });
     } catch (error) {
@@ -722,10 +762,18 @@ export default function CDNPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => copyPublicUrl(file.key)}
-                            title="Copy URL"
+                            onClick={() => copyCdnUrl(file.key)}
+                            title="Copy CDN URL"
                           >
                             <Copy className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyPublicUrl(file.key)}
+                            title="Copy Object URL"
+                          >
+                            <ExternalLink className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -791,10 +839,16 @@ export default function CDNPage() {
                                 Preview
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={() => copyPublicUrl(file.key)}
+                                onClick={() => copyCdnUrl(file.key)}
                               >
                                 <Copy className="mr-2 h-4 w-4" />
-                                Copy URL
+                                Copy CDN URL
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => copyPublicUrl(file.key)}
+                              >
+                                <ExternalLink className="mr-2 h-4 w-4" />
+                                Copy Object URL
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => getSignedUrl(file.key)}
@@ -942,6 +996,15 @@ export default function CDNPage() {
                         value={settings.prefix}
                         onChange={(e) => setSettings({ ...settings, prefix: e.target.value })}
                         placeholder="images"
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="settings-customDomain">Custom Domain (optional)</Label>
+                      <Input
+                        id="settings-customDomain"
+                        value={settings.customDomain}
+                        onChange={(e) => setSettings({ ...settings, customDomain: e.target.value })}
+                        placeholder="https://cdn.example.com"
                       />
                     </div>
                   </div>

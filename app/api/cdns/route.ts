@@ -9,6 +9,7 @@ const createCdnSchema = z.object({
   publicBase: z.string().url(),
   bucket: z.string().min(1).max(50),
   prefix: z.string().optional().default(''),
+  customDomain: z.string().url().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
   try {
     const user = await requireSuperAdmin(request);
     const body = await request.json();
-    const { name, publicBase, bucket, prefix } = createCdnSchema.parse(body);
+    const { name, publicBase, bucket, prefix, customDomain } = createCdnSchema.parse(body);
 
     const slug = createSlug(name);
     
@@ -69,6 +70,7 @@ export async function POST(request: NextRequest) {
       publicBase,
       bucket,
       prefix: prefix || '',
+      customDomain: customDomain || null,
       owners: [user.uid],
       allowedUsers: [],
       createdBy: user.uid,
@@ -81,7 +83,7 @@ export async function POST(request: NextRequest) {
       actorUid: user.uid,
       action: 'CREATE_CDN',
       cdnId: cdnRef.id,
-      details: { name: slug, publicBase, bucket, prefix },
+      details: { name: slug, publicBase, bucket, prefix, customDomain },
       createdAt: new Date(),
     });
 

@@ -20,6 +20,7 @@ interface CDN {
   publicBase: string;
   bucket: string;
   prefix: string;
+  customDomain?: string;
   owners: string[];
   allowedUsers: string[];
   createdBy: string;
@@ -42,6 +43,7 @@ export default function DashboardPage() {
     publicBase: '',
     bucket: '',
     prefix: '',
+    customDomain: '',
   });
 
   const fetchCDNs = useCallback(async () => {
@@ -187,6 +189,15 @@ export default function DashboardPage() {
                     placeholder="images"
                     value={formData.prefix}
                     onChange={(e) => setFormData({ ...formData, prefix: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="customDomain">Custom Domain (optional)</Label>
+                  <Input
+                    id="customDomain"
+                    placeholder="https://cdn.example.com"
+                    value={formData.customDomain}
+                    onChange={(e) => setFormData({ ...formData, customDomain: e.target.value })}
                   />
                 </div>
                 <div className="flex justify-end space-x-2">

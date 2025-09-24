@@ -8,6 +8,7 @@ const updateCdnSchema = z.object({
   publicBase: z.string().url().optional(),
   bucket: z.string().min(1).max(50).optional(),
   prefix: z.string().optional(),
+  customDomain: z.string().url().optional(),
 });
 
 export async function GET(
