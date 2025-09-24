@@ -22,16 +22,11 @@ if (!ACCOUNT_ID || !ACCESS_KEY_ID || !SECRET_ACCESS_KEY) {
   process.exit(1);
 }
 
-// CORS configuration
+// CORS configuration - More permissive for testing
 const corsConfig = [
   {
     "AllowedOrigins": [
-      "https://cdn-manager.nord95.com",
-      "https://localhost:3000",
-      "http://localhost:3000",
-      "https://*.nord95.com",
-      "https://*.vercel.app",
-      "*" // Allow all origins for testing
+      "*" // Allow all origins - most permissive
     ],
     "AllowedMethods": [
       "GET",
@@ -48,7 +43,7 @@ const corsConfig = [
       "x-amz-request-id",
       "x-amz-id-2"
     ],
-    "MaxAgeSeconds": 3600
+    "MaxAgeSeconds": 86400 // 24 hours
   }
 ];
 
