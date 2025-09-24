@@ -38,8 +38,7 @@ const corsConfig = [
       "PUT",
       "POST",
       "DELETE",
-      "HEAD",
-      "OPTIONS"
+      "HEAD"
     ],
     "AllowedHeaders": [
       "*"
