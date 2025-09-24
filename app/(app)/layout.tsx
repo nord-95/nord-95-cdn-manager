@@ -24,7 +24,8 @@ import {
   Moon,
   Monitor,
   ChevronRight,
-  GitCommit
+  GitCommit,
+  Mail
 } from 'lucide-react';
 import Link from 'next/link';
 import { SearchBar } from '@/components/SearchBar';
@@ -142,6 +143,14 @@ export default function AppLayout({
                       <Link href="/releases" className="flex items-center">
                         <GitCommit className="mr-2 h-4 w-4" />
                         Releases
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {user?.role === 'SUPER_ADMIN' && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/invitations" className="flex items-center">
+                        <Mail className="mr-2 h-4 w-4" />
+                        Invitations
                       </Link>
                     </DropdownMenuItem>
                   )}

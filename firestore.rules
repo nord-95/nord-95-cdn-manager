@@ -34,5 +34,23 @@ service cloud.firestore {
       // Writes are restricted to server via Admin SDK
       allow write: if false;
     }
+    
+    // Invites - only super admin can read
+    match /invites/{inviteId} {
+      allow read: if request.auth != null &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SUPER_ADMIN';
+      // Writes are restricted to server via Admin SDK
+      allow write: if false;
+      
+      // Uploads subcollection - only super admin can read
+      match /uploads/{uploadId} {
+        allow read: if request.auth != null &&
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SUPER_ADMIN';
+        // Writes are restricted to server via Admin SDK
+        allow write: if false;
+      }
+    }
   }
 }
