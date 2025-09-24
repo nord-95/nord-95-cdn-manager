@@ -7,8 +7,8 @@ import {
   ListObjectsV2Command 
 } from "@aws-sdk/client-s3";
 
-const endpoint = process.env.R2_ACCOUNT_HOS
-  ? `https://${process.env.R2_ACCOUNT_HOS}`
+const endpoint = process.env.R2_ACCOUNT_HOST
+  ? `https://${process.env.R2_ACCOUNT_HOST}`
   : `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
 
 export function r2() {
