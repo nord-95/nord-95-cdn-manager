@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { adminDb } from '@/lib/firebase/admin';
-import { verifyInviteToken } from '@/lib/invites/token';
+import { hashInviteToken } from '@/lib/invites/token';
 import { rateLimitInviteEndpoint } from '@/lib/ratelimit';
 import { validateMimeType, validateFileSize, getFileExtension } from '@/lib/invites/sanitize';
 import { InviteCommitSchema, InviteStatus, UploadStatus } from '@/lib/validators/invites';
@@ -21,7 +21,7 @@ export async function POST(
     const commitData = InviteCommitSchema.parse(body);
     
     // Hash the token to look up the invite
-    const tokenHash = require('crypto').createHash('sha256').update(token).digest('hex');
+    const tokenHash = hashInviteToken(token);
     
     // Rate limiting
     const rateLimitResult = rateLimitInviteEndpoint(request, tokenHash, 'commit');

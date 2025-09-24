@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { adminDb } from '@/lib/firebase/admin';
-import { verifyInviteToken } from '@/lib/invites/token';
+import { hashInviteToken } from '@/lib/invites/token';
 import { rateLimitInviteEndpoint } from '@/lib/ratelimit';
 import { createInvitePostPolicy } from '@/lib/r2-post';
 import { buildFileKey, resolvePrefixTokens } from '@/lib/invites/prefix';
@@ -23,7 +23,7 @@ export async function POST(
     const { contentType, filename } = InviteSignPostSchema.parse(body);
     
     // Hash the token to look up the invite
-    const tokenHash = require('crypto').createHash('sha256').update(token).digest('hex');
+    const tokenHash = hashInviteToken(token);
     
     // Rate limiting
     const rateLimitResult = rateLimitInviteEndpoint(request, tokenHash, 'sign');

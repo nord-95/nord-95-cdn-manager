@@ -2,9 +2,45 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { adminDb } from '@/lib/firebase/admin';
 import { requireSuperAdmin } from '@/lib/auth';
-import { InviteUpdateSchema } from '@/lib/validators/invites';
+import { InviteUpdateSchema, InviteDocument } from '@/lib/validators/invites';
 import { resolvePrefixTokens } from '@/lib/invites/prefix';
 import { logInviteUpdated } from '@/lib/audit';
+
+// GET /api/invites/[id] - Get invite details
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const user = await requireSuperAdmin(request);
+    const { id } = await params;
+    
+    // Get invite document
+    const inviteDoc = await adminDb.collection('invites').doc(id).get();
+    if (!inviteDoc.exists) {
+      return NextResponse.json({ error: 'Invite not found' }, { status: 404 });
+    }
+    
+    const inviteData = inviteDoc.data() as InviteDocument;
+    
+    return NextResponse.json({
+      id: inviteDoc.id,
+      ...inviteData,
+    });
+    
+  } catch (error) {
+    console.error('Error getting invite:', error);
+    
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
 
 // PATCH /api/invites/[id] - Update invite
 export async function PATCH(
