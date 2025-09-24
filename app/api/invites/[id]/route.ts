@@ -24,8 +24,8 @@ export async function GET(
     const inviteData = inviteDoc.data() as InviteDocument;
     
     return NextResponse.json({
-      id: inviteDoc.id,
       ...inviteData,
+      id: inviteDoc.id,
     });
     
   } catch (error) {
