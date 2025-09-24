@@ -11,12 +11,17 @@ export type UploadStatus = z.infer<typeof UploadStatus>;
 // Default allowed MIME types and extensions
 export const DEFAULT_ALLOWED_MIME_TYPES = [
   'image/png',
-  'image/jpeg', 
+  'image/jpeg',
   'image/webp',
   'application/pdf',
   'video/mp4',
   'application/zip',
-  'image/svg+xml'
+  'image/svg+xml',
+  'audio/mpeg',
+  'audio/wav',
+  'audio/ogg',
+  'audio/mp3',
+  'audio/m4a'
 ] as const;
 
 export const DEFAULT_ALLOWED_EXTENSIONS = [
@@ -27,7 +32,11 @@ export const DEFAULT_ALLOWED_EXTENSIONS = [
   'pdf',
   'mp4',
   'zip',
-  'svg'
+  'svg',
+  'mp3',
+  'wav',
+  'ogg',
+  'm4a'
 ] as const;
 
 // Invite creation schema

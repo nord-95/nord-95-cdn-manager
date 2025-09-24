@@ -35,6 +35,7 @@ export default function InvitationsPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [invites, setInvites] = useState<InviteDocument[]>([]);
+  const [inviteTokens, setInviteTokens] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -125,6 +126,13 @@ export default function InvitationsPage() {
 
       if (response.ok) {
         const result = await response.json();
+        
+        // Store the token for later copying
+        setInviteTokens(prev => ({
+          ...prev,
+          [result.id]: result.token
+        }));
+        
         toast({
           title: "Success",
           description: "Invitation created successfully",
@@ -216,13 +224,21 @@ export default function InvitationsPage() {
 
   const copyInviteUrl = async (inviteId: string) => {
     try {
-      // For now, we'll need to reconstruct the URL since we don't store the token
-      // In a real implementation, you might want to store the token securely or regenerate it
-      toast({
-        title: "Note",
-        description: "Invite URL can only be copied immediately after creation",
-        variant: "destructive",
-      });
+      const token = inviteTokens[inviteId];
+      if (token) {
+        const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://cdn-manager.nord95.com'}/invite/${token}`;
+        await navigator.clipboard.writeText(inviteUrl);
+        toast({
+          title: "Success",
+          description: "Invite URL copied to clipboard",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Invite URL not available. Please recreate the invitation.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
