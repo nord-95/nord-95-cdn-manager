@@ -101,7 +101,7 @@ export default function PublicInvitePage() {
       }]);
 
       // Update invite remaining uses
-      setInvite(prev => ({
+      setInvite((prev: any) => ({
         ...prev,
         remainingUses: prev.remainingUses - 1
       }));
