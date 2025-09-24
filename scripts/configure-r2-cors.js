@@ -22,28 +22,22 @@ if (!ACCOUNT_ID || !ACCESS_KEY_ID || !SECRET_ACCESS_KEY) {
   process.exit(1);
 }
 
-// CORS configuration - More permissive for testing
+// CORS configuration - COMPLETELY OPEN for testing
 const corsConfig = [
   {
     "AllowedOrigins": [
-      "*" // Allow all origins - most permissive
+      "*"
     ],
     "AllowedMethods": [
-      "GET",
-      "PUT",
-      "POST",
-      "DELETE",
-      "HEAD"
+      "*" // Allow ALL methods
     ],
     "AllowedHeaders": [
       "*"
     ],
     "ExposeHeaders": [
-      "ETag",
-      "x-amz-request-id",
-      "x-amz-id-2"
+      "*"
     ],
-    "MaxAgeSeconds": 86400 // 24 hours
+    "MaxAgeSeconds": 86400
   }
 ];
 
