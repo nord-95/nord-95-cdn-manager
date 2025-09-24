@@ -94,7 +94,7 @@ export default function DashboardPage() {
           description: "CDN created successfully",
         });
         setIsCreateDialogOpen(false);
-        setFormData({ name: '', publicBase: '', bucket: '', prefix: '' });
+        setFormData({ name: '', publicBase: '', bucket: '', prefix: '', customDomain: '' });
         fetchCDNs();
         router.push(`/cdn/${result.id}`);
       } else {
